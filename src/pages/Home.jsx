@@ -114,14 +114,38 @@ function useCursor(enabled) {
 
   useEffect(() => {
     if (!enabled) return;
+
+    // Detect light mode via class OR system preference
+    const isLight = () =>
+      document.documentElement.classList.contains('light-mode') ||
+      document.body.classList.contains('light-mode') ||
+      window.matchMedia('(prefers-color-scheme: light)').matches;
+
+    const setColor = () => {
+      if (cursorRef.current) {
+        cursorRef.current.style.borderColor = isLight() ? '#050d1a' : '#0066FF';
+      }
+    };
+
     const onMove = (e) => {
       if (cursorRef.current) {
         cursorRef.current.style.left = e.clientX + 'px';
         cursorRef.current.style.top  = e.clientY + 'px';
       }
+      setColor();
     };
+
+    // Also watch for theme class changes on html/body
+    const observer = new MutationObserver(setColor);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+    setColor();
     window.addEventListener('mousemove', onMove, { passive: true });
-    return () => window.removeEventListener('mousemove', onMove);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      observer.disconnect();
+    };
   }, [enabled]);
 
   return { cursorRef };
