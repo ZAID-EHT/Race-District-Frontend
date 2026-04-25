@@ -115,7 +115,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [cursor, setCursor] = useState({ x: -999, y: -999 });
 
-  // FIX: Proper reactive isMobile check — avoids stale window.innerWidth at render
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 600);
@@ -124,7 +123,6 @@ export default function Home() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // FIX: Only track cursor when NOT mobile
   useEffect(() => {
     if (isMobile) return;
     const move = (e) => setCursor({ x: e.clientX, y: e.clientY });
@@ -132,7 +130,8 @@ export default function Home() {
     return () => window.removeEventListener('mousemove', move);
   }, [isMobile]);
 
-  const typeText = useTypewriter(['Built for Car Culture', 'Aero Optimized', 'Designed for Your Space', 'Simply Fast']);
+  // FIX: Updated text per user request
+  const typeText = useTypewriter(['Aero Optimized', 'Built for Car Culture', 'Designed for Your Space', 'Simply Fast']);
   const designCount = useCountUp(50);
   const enthusiastCount = useCountUp(10000);
   const dispatchCount = useCountUp(24);
@@ -158,7 +157,6 @@ export default function Home() {
 
   return (
     <div className="rd-root">
-      {/* FIX: Cursor blob — only rendered when NOT mobile */}
       {!isMobile && (
         <div style={{
           position: 'fixed',
@@ -175,34 +173,28 @@ export default function Home() {
         }} />
       )}
 
-      {/* ─── HERO ─── */}
       <section className="rd-hero">
         <div className="rd-hero-bg" />
 
-        {/* Center-column layout */}
         <div className="rd-hero-inner">
-
-          {/* Eyebrow */}
+          {/* FIX: Updated eyebrow text */}
           <p className="rd-eyebrow">Premium Motorsport Gear — Designed for Your Space</p>
 
-          {/* Headline */}
           <h1 className="rd-headline font-orbitron">
             BUILT FOR<br/>
             <span className="rd-headline-accent">SPEED</span>
           </h1>
 
-          {/* Typewriter */}
           <div className="rd-typewriter-row">
             <span className="rd-typewriter font-orbitron">{typeText}</span>
             <span className="rd-cursor" />
           </div>
 
-          {/* Body */}
+          {/* FIX: Updated body text */}
           <p className="rd-body">
             Race District is where automotive passion meets interior design. We create premium frames inspired by performance, culture, and iconic engineering — built to elevate your space.
           </p>
 
-          {/* CTA buttons */}
           <div className="rd-ctas">
             <button className="rd-btn-primary" onClick={() => navigate('/products')}>
               SHOP NOW
@@ -211,7 +203,6 @@ export default function Home() {
             <button className="rd-btn-secondary" onClick={() => navigate('/about')}>OUR STORY</button>
           </div>
 
-          {/* Stats */}
           <div className="rd-stats">
             <div className="rd-stat">
               <span className="rd-stat-val font-orbitron">{designCount}+</span>
@@ -230,7 +221,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Frame viewer — right side on desktop, below text on mobile */}
         <div className="rd-hero-frame">
           <div className="rd-frame-glow" />
           <div className="rd-frame-wrap">
@@ -238,13 +228,11 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Scroll arrow */}
         <div className="rd-scroll-arrow">
           <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
         </div>
       </section>
 
-      {/* ─── FEATURED GEAR ─── */}
       <section className="rd-featured">
         <div className="rd-section-head">
           <p className="rd-section-eyebrow font-orbitron">Our Collection</p>
@@ -252,12 +240,10 @@ export default function Home() {
           <div className="rd-section-line" />
         </div>
 
-        {/* Desktop grid */}
         <div className="rd-grid">
           {displayProducts.map(p => <ProductCard key={p._id || p.id} product={p} featured />)}
         </div>
 
-        {/* Mobile carousel */}
         <div className="rd-carousel">
           <div className="rd-carousel-track">
             {displayProducts.map(p => (
@@ -279,10 +265,8 @@ export default function Home() {
       <CarouselDotSync />
 
       <style>{`
-        /* ─── BASE ─── */
         .rd-root { overflow-x: hidden; }
 
-        /* ─── HERO ─── */
         .rd-hero {
           position: relative;
           min-height: 100vh;
@@ -297,7 +281,6 @@ export default function Home() {
           overflow-y: visible;
         }
 
-        /* Dark mode bg */
         .rd-hero-bg {
           position: absolute;
           inset: 0;
@@ -305,7 +288,6 @@ export default function Home() {
           z-index: 0;
         }
 
-        /* Light mode bg */
         @media (prefers-color-scheme: light) {
           .rd-hero-bg {
             background: radial-gradient(ellipse 80% 60% at 60% 40%, #c8e0ff 0%, #daeeff 50%, #eef6ff 100%);
@@ -315,7 +297,6 @@ export default function Home() {
           background: radial-gradient(ellipse 80% 60% at 60% 40%, #c8e0ff 0%, #daeeff 50%, #eef6ff 100%) !important;
         }
 
-        /* Subtle grid pattern overlay */
         .rd-hero::before {
           content: '';
           position: absolute;
@@ -327,7 +308,6 @@ export default function Home() {
           pointer-events: none;
         }
 
-        /* Blue accent stripe */
         .rd-hero::after {
           content: '';
           position: absolute;
@@ -462,7 +442,6 @@ export default function Home() {
         .light-mode .rd-btn-secondary { color: #080f1e !important; border-color: rgba(0,0,0,0.25) !important; }
         .light-mode .rd-btn-secondary:hover { border-color: #0066FF !important; color: #0066FF !important; }
 
-        /* ─── STATS ─── */
         .rd-stats {
           display: flex;
           align-items: center;
@@ -501,7 +480,6 @@ export default function Home() {
         @media (prefers-color-scheme: light) { .rd-stat-divider { background: rgba(0,0,0,0.1); } }
         .light-mode .rd-stat-divider { background: rgba(0,0,0,0.1) !important; }
 
-        /* ─── HERO FRAME (desktop) ─── */
         .rd-hero-frame {
           position: relative;
           z-index: 10;
@@ -535,7 +513,6 @@ export default function Home() {
         }
         @keyframes pulse { 0%,100%{opacity:0.18;transform:scale(1)} 50%{opacity:0.28;transform:scale(1.1)} }
 
-        /* ─── SCROLL ARROW ─── */
         .rd-scroll-arrow {
           position: absolute;
           bottom: 1.8rem;
@@ -547,7 +524,6 @@ export default function Home() {
         }
         @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 55%{transform:translateX(-50%) translateY(-8px)} }
 
-        /* ─── FEATURED SECTION ─── */
         .rd-featured {
           padding: 7rem 6vw;
           background: var(--bg-primary, #050d1a);
@@ -589,7 +565,6 @@ export default function Home() {
           clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));
         }
 
-        /* ─── PRODUCT GRID ─── */
         .rd-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -686,7 +661,6 @@ export default function Home() {
         }
         .rd-btn-outline:hover { background: #0066FF; color: #fff; }
 
-        /* ─── CAROUSEL (mobile) ─── */
         .rd-carousel { display: none; }
         .rd-carousel-track {
           display: flex;
@@ -717,13 +691,11 @@ export default function Home() {
         @media (prefers-color-scheme: light) { .rd-dot { background: rgba(0,0,0,0.15); } }
         .light-mode .rd-dot { background: rgba(0,0,0,0.15) !important; }
 
-        /* ─── DESKTOP ─── */
         @media (min-width: 900px) {
           .rd-hero { min-height: 100vh; height: auto; padding-bottom: 5rem; }
           .rd-carousel { display: none !important; }
         }
 
-        /* ─── TABLET ─── */
         @media (max-width: 900px) and (min-width: 601px) {
           .rd-hero {
             grid-template-columns: 1fr;
@@ -756,7 +728,8 @@ export default function Home() {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 5rem 5vw 0;
+            /* FIX: More top padding so text stays below header */
+            padding: 7.5rem 5vw 0;
             min-height: unset;
             height: auto;
             gap: 0;
@@ -764,10 +737,8 @@ export default function Home() {
             overflow: visible;
           }
 
-          /* FIX: position absolute so it stays in flow, not fixed */
           .rd-hero-bg { position: absolute; }
 
-          /* FIX: inner fills content only so frame appears above the fold */
           .rd-hero-inner {
             order: 0;
             position: relative;
@@ -783,7 +754,6 @@ export default function Home() {
             grid-row: unset;
           }
 
-          /* FIX: eyebrow visible on mobile */
           .rd-eyebrow {
             display: block !important;
             visibility: visible !important;
@@ -793,7 +763,6 @@ export default function Home() {
 
           .rd-headline { font-size: clamp(2rem, 9vw, 2.8rem); }
 
-          /* FIX: body text fills full width, no empty gaps */
           .rd-body {
             font-size: 0.93rem;
             line-height: 1.65;
@@ -815,7 +784,7 @@ export default function Home() {
           .rd-stat-label { font-size: 0.58rem; }
           .rd-stat-divider { height: 1.6rem; }
 
-          /* FIX: Frame sits BELOW text (order:1), centered with equal side spacing */
+          /* FIX: Frame below text, centered, equal side spacing */
           .rd-hero-frame {
             order: 1;
             position: relative;
@@ -827,12 +796,12 @@ export default function Home() {
             align-items: center;
             justify-content: center;
             margin: 0;
-            padding: 2rem 5vw;   /* ← equal 5vw padding on left AND right */
+            /* FIX: Equal padding left and right for equal spacing */
+            padding: 1.5rem 5vw 2.5rem;
             grid-column: unset;
             grid-row: unset;
           }
 
-          /* FIX: glow centered absolutely behind frame */
           .rd-frame-glow {
             width: 140px;
             height: 140px;
@@ -844,19 +813,22 @@ export default function Home() {
             transform: translate(-50%, -50%);
           }
 
-          /* FIX: frame wrap centered with equal margins */
+          /* FIX: Frame wrap centered, no 3D transform, cropped to show car only */
           .rd-frame-wrap {
             position: relative;
             z-index: 2;
-            width: 90vw;         /* ← wider so it fills the space nicely */
+            width: 90vw;
             max-width: 380px;
-            margin: 0 auto;        /* ← perfectly centered, equal left/right */
+            margin: 0 auto;
             display: flex;
             justify-content: center;
             align-items: center;
+            /* FIX: Crop the top part (Lewis Hamilton head) — show car section only */
+            overflow: hidden;
+            border-radius: 4px;
           }
 
-          /* FIX: kill any 3D transforms and keep child centered/contained */
+          /* FIX: Shift image UP inside the container so top (head) is hidden, car is visible */
           .rd-frame-wrap > * {
             max-width: 100% !important;
             height: auto !important;
@@ -864,9 +836,10 @@ export default function Home() {
             -webkit-transform: none !important;
             margin: 0 auto !important;
             display: block !important;
+            /* FIX: Move image up by 35% to hide the head portion, show car */
+            margin-top: -35% !important;
           }
 
-          /* FIX: hide cursor blob completely on mobile */
           .rd-cursor { display: none !important; }
 
           .rd-scroll-arrow { display: none; }
@@ -876,7 +849,6 @@ export default function Home() {
           .rd-section-head { padding: 0 5vw; }
         }
 
-        /* Very small phones */
         @media (max-width: 380px) {
           .rd-headline { font-size: 1.85rem; }
           .rd-stat-val { font-size: 1.2rem; }
