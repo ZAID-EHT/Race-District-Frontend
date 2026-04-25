@@ -130,7 +130,6 @@ export default function Home() {
     return () => window.removeEventListener('mousemove', move);
   }, [isMobile]);
 
-  // FIX: Updated text per user request
   const typeText = useTypewriter(['Aero Optimized', 'Built for Car Culture', 'Designed for Your Space', 'Simply Fast']);
   const designCount = useCountUp(50);
   const enthusiastCount = useCountUp(10000);
@@ -173,11 +172,11 @@ export default function Home() {
         }} />
       )}
 
+      {/* ─── HERO TEXT ONLY (no frame) ─── */}
       <section className="rd-hero">
         <div className="rd-hero-bg" />
 
         <div className="rd-hero-inner">
-          {/* FIX: Updated eyebrow text */}
           <p className="rd-eyebrow">Premium Motorsport Gear — Designed for Your Space</p>
 
           <h1 className="rd-headline font-orbitron">
@@ -190,7 +189,6 @@ export default function Home() {
             <span className="rd-cursor" />
           </div>
 
-          {/* FIX: Updated body text */}
           <p className="rd-body">
             Race District is where automotive passion meets interior design. We create premium frames inspired by performance, culture, and iconic engineering — built to elevate your space.
           </p>
@@ -221,18 +219,21 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="rd-hero-frame">
-          <div className="rd-frame-glow" />
-          <div className="rd-frame-wrap">
-            <FrameViewer imageSrc={null} />
-          </div>
-        </div>
-
         <div className="rd-scroll-arrow">
           <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
         </div>
       </section>
 
+      {/* ─── FRAME SECTION (separate, full page on scroll) ─── */}
+      <section className="rd-frame-section">
+        <div className="rd-frame-section-bg" />
+        <div className="rd-frame-glow" />
+        <div className="rd-frame-section-wrap">
+          <FrameViewer imageSrc={null} />
+        </div>
+      </section>
+
+      {/* ─── FEATURED GEAR ─── */}
       <section className="rd-featured">
         <div className="rd-section-head">
           <p className="rd-section-eyebrow font-orbitron">Our Collection</p>
@@ -267,18 +268,17 @@ export default function Home() {
       <style>{`
         .rd-root { overflow-x: hidden; }
 
+        /* ─── HERO ─── */
         .rd-hero {
           position: relative;
           min-height: 100vh;
-          display: grid;
-          grid-template-columns: 1.1fr 0.9fr;
-          grid-template-rows: 1fr auto;
+          display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: 0;
+          justify-content: center;
           padding: 7rem 6vw 5rem;
           box-sizing: border-box;
           overflow: hidden;
-          overflow-y: visible;
         }
 
         .rd-hero-bg {
@@ -323,8 +323,8 @@ export default function Home() {
           display: flex;
           flex-direction: column;
           gap: 1.4rem;
-          grid-column: 1;
-          grid-row: 1;
+          align-items: center;
+          text-align: center;
           max-width: 600px;
         }
 
@@ -399,6 +399,7 @@ export default function Home() {
           display: flex;
           gap: 1rem;
           flex-wrap: wrap;
+          justify-content: center;
         }
 
         .rd-btn-primary {
@@ -480,39 +481,6 @@ export default function Home() {
         @media (prefers-color-scheme: light) { .rd-stat-divider { background: rgba(0,0,0,0.1); } }
         .light-mode .rd-stat-divider { background: rgba(0,0,0,0.1) !important; }
 
-        .rd-hero-frame {
-          position: relative;
-          z-index: 10;
-          grid-column: 2;
-          grid-row: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          justify-self: center;
-          height: 75vh;
-          max-height: 620px;
-        }
-
-        .rd-frame-glow {
-          position: absolute;
-          width: 260px;
-          height: 260px;
-          background: #0066FF;
-          border-radius: 50%;
-          filter: blur(90px);
-          opacity: 0.18;
-          animation: pulse 4s ease-in-out infinite;
-        }
-
-        .rd-frame-wrap {
-          position: relative;
-          z-index: 2;
-          width: 100%;
-          max-width: 460px;
-          margin-top: 0;
-        }
-        @keyframes pulse { 0%,100%{opacity:0.18;transform:scale(1)} 50%{opacity:0.28;transform:scale(1.1)} }
-
         .rd-scroll-arrow {
           position: absolute;
           bottom: 1.8rem;
@@ -524,6 +492,68 @@ export default function Home() {
         }
         @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 55%{transform:translateX(-50%) translateY(-8px)} }
 
+        /* ─── FRAME SECTION (separate full section on scroll) ─── */
+        .rd-frame-section {
+          position: relative;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 4rem 5vw;
+          box-sizing: border-box;
+          overflow: hidden;
+        }
+
+        .rd-frame-section-bg {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse 80% 60% at 50% 50%, #0d1a2d 0%, #050d1a 60%, #000 100%);
+          z-index: 0;
+        }
+        @media (prefers-color-scheme: light) {
+          .rd-frame-section-bg {
+            background: radial-gradient(ellipse 80% 60% at 50% 50%, #d6e8ff 0%, #e8f2ff 50%, #f5faff 100%);
+          }
+        }
+        .light-mode .rd-frame-section-bg {
+          background: radial-gradient(ellipse 80% 60% at 50% 50%, #d6e8ff 0%, #e8f2ff 50%, #f5faff 100%) !important;
+        }
+
+        .rd-frame-section .rd-frame-glow {
+          position: absolute;
+          width: 300px;
+          height: 300px;
+          background: #0066FF;
+          border-radius: 50%;
+          filter: blur(100px);
+          opacity: 0.2;
+          animation: pulse 4s ease-in-out infinite;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+        }
+
+        .rd-frame-section-wrap {
+          position: relative;
+          z-index: 2;
+          width: 85vw;
+          max-width: 420px;
+          margin: 0 auto;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .rd-frame-section-wrap > * {
+          max-width: 100% !important;
+          height: auto !important;
+          transform: none !important;
+          -webkit-transform: none !important;
+          margin: 0 auto !important;
+          display: block !important;
+        }
+
+        /* ─── FEATURED SECTION ─── */
         .rd-featured {
           padding: 7rem 6vw;
           background: var(--bg-primary, #050d1a);
@@ -691,67 +721,80 @@ export default function Home() {
         @media (prefers-color-scheme: light) { .rd-dot { background: rgba(0,0,0,0.15); } }
         .light-mode .rd-dot { background: rgba(0,0,0,0.15) !important; }
 
+        /* ─── DESKTOP ─── */
         @media (min-width: 900px) {
           .rd-hero { min-height: 100vh; height: auto; padding-bottom: 5rem; }
+          .rd-hero-inner { align-items: flex-start; text-align: left; }
+          .rd-ctas { justify-content: flex-start; }
+          .rd-stats { justify-content: flex-start; }
           .rd-carousel { display: none !important; }
+          
+          /* Desktop: frame section side by side with text in hero */
+          .rd-hero {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            grid-template-rows: 1fr auto;
+            align-items: center;
+          }
+          .rd-frame-section { display: none; }
+          .rd-hero-frame {
+            position: relative;
+            z-index: 10;
+            grid-column: 2;
+            grid-row: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            justify-self: center;
+            height: 75vh;
+            max-height: 620px;
+          }
+          .rd-hero-frame .rd-frame-glow {
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            background: #0066FF;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.18;
+            animation: pulse 4s ease-in-out infinite;
+          }
+          .rd-hero-frame .rd-frame-wrap {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 460px;
+            margin-top: 0;
+          }
         }
 
+        /* ─── TABLET ─── */
         @media (max-width: 900px) and (min-width: 601px) {
           .rd-hero {
-            grid-template-columns: 1fr;
-            grid-template-rows: auto auto;
             padding: 5rem 6vw 2rem;
             text-align: center;
-            gap: 2rem;
           }
-          .rd-hero-inner {
-            align-items: center;
-            max-width: 100%;
-            grid-column: 1; grid-row: 1;
-          }
-          .rd-hero-frame {
-            grid-column: 1; grid-row: 2;
-            height: 50vh;
-            max-height: 400px;
-          }
-          .rd-frame-wrap { max-width: 360px; margin-top: 0; }
+          .rd-hero-inner { align-items: center; max-width: 100%; }
           .rd-ctas { justify-content: center; }
           .rd-stats { justify-content: center; }
           .rd-grid { grid-template-columns: repeat(2, 1fr); }
           .rd-carousel { display: none; }
           .rd-grid { display: grid !important; }
+          .rd-frame-section { min-height: 60vh; }
+          .rd-frame-section-wrap { max-width: 360px; }
         }
 
         /* ─── MOBILE ─── */
         @media (max-width: 600px) {
           .rd-hero {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /* FIX: More top padding so text stays below header */
-            padding: 7.5rem 5vw 0;
+            padding: 7.5rem 5vw 3rem;
             min-height: unset;
             height: auto;
-            gap: 0;
-            text-align: center;
-            overflow: visible;
           }
 
-          .rd-hero-bg { position: absolute; }
-
           .rd-hero-inner {
-            order: 0;
-            position: relative;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
             gap: 0.6rem;
             width: 100%;
-            max-width: 100%;
-            grid-column: unset;
-            grid-row: unset;
           }
 
           .rd-eyebrow {
@@ -784,76 +827,30 @@ export default function Home() {
           .rd-stat-label { font-size: 0.58rem; }
           .rd-stat-divider { height: 1.6rem; }
 
-          /* FIX: Frame below text, centered, equal side spacing */
-          .rd-hero-frame {
-            order: 1;
-            position: relative;
-            z-index: 10;
-            width: 100%;
-            height: auto;
-            max-height: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            /* FIX: Equal padding left and right for equal spacing */
-            padding: 1.5rem 5vw 2.5rem;
-            grid-column: unset;
-            grid-row: unset;
-          }
-
-          .rd-frame-glow {
-            width: 140px;
-            height: 140px;
-            filter: blur(50px);
-            opacity: 0.25;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-          }
-
-          /* FIX: Frame wrap centered, no 3D transform, cropped to show car only */
-          .rd-frame-wrap {
-            position: relative;
-            z-index: 2;
-            width: 90vw;
-            max-width: 380px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            /* FIX: Crop the top part (Lewis Hamilton head) — show car section only */
-            overflow: hidden;
-            border-radius: 4px;
-          }
-
-          /* FIX: Shift image UP inside the container so top (head) is hidden, car is visible */
-          .rd-frame-wrap > * {
-            max-width: 100% !important;
-            height: auto !important;
-            transform: none !important;
-            -webkit-transform: none !important;
-            margin: 0 auto !important;
-            display: block !important;
-            /* FIX: Move image up by 35% to hide the head portion, show car */
-            margin-top: -35% !important;
-          }
-
           .rd-cursor { display: none !important; }
-
           .rd-scroll-arrow { display: none; }
           .rd-grid { display: none !important; }
           .rd-carousel { display: block; }
           .rd-featured { padding: 3.5rem 0; }
           .rd-section-head { padding: 0 5vw; }
+
+          /* Mobile: separate frame section */
+          .rd-frame-section {
+            min-height: unset;
+            height: auto;
+            padding: 3rem 5vw;
+          }
+          .rd-frame-section-wrap {
+            width: 85vw;
+            max-width: 340px;
+          }
         }
 
         @media (max-width: 380px) {
           .rd-headline { font-size: 1.85rem; }
           .rd-stat-val { font-size: 1.2rem; }
           .rd-stats { gap: 0.7rem; }
-          .rd-frame-wrap { width: 88vw; margin: 0 auto; }
+          .rd-frame-section-wrap { width: 82vw; }
         }
       `}</style>
     </div>
