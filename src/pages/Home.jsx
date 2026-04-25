@@ -108,42 +108,40 @@ function CarouselDotSync() {
   return null;
 }
 
-// Single cursor circle — transparent fill, solid ring border, snaps to mouse
+// Single cursor circle — fully inline styled, no CSS class needed
 function useCursor(enabled) {
   const cursorRef = useRef(null);
 
   useEffect(() => {
     if (!enabled) return;
 
-    // Detect light mode via class OR system preference
-    const isLight = () =>
-      document.documentElement.classList.contains('light-mode') ||
-      document.body.classList.contains('light-mode') ||
-      window.matchMedia('(prefers-color-scheme: light)').matches;
-
-    const setColor = () => {
-      if (cursorRef.current) {
-        cursorRef.current.style.borderColor = isLight() ? '#050d1a' : '#0066FF';
-      }
+    const getColor = () => {
+      const isLight =
+        document.documentElement.classList.contains('light-mode') ||
+        document.body.classList.contains('light-mode') ||
+        window.matchMedia('(prefers-color-scheme: light)').matches;
+      return isLight ? '#050d1a' : '#0066FF';
     };
 
-    const onMove = (e) => {
-      if (cursorRef.current) {
-        cursorRef.current.style.left = e.clientX + 'px';
-        cursorRef.current.style.top  = e.clientY + 'px';
-      }
-      setColor();
+    const apply = (e) => {
+      if (!cursorRef.current) return;
+      cursorRef.current.style.left = e.clientX + 'px';
+      cursorRef.current.style.top  = e.clientY + 'px';
+      cursorRef.current.style.borderColor = getColor();
     };
 
-    // Also watch for theme class changes on html/body
-    const observer = new MutationObserver(setColor);
+    // Also update colour immediately when theme class changes
+    const observer = new MutationObserver(() => {
+      if (cursorRef.current) cursorRef.current.style.borderColor = getColor();
+    });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.body,            { attributes: true, attributeFilter: ['class'] });
 
-    setColor();
-    window.addEventListener('mousemove', onMove, { passive: true });
+    if (cursorRef.current) cursorRef.current.style.borderColor = getColor();
+
+    window.addEventListener('mousemove', apply, { passive: true });
     return () => {
-      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mousemove', apply);
       observer.disconnect();
     };
   }, [enabled]);
@@ -199,9 +197,23 @@ export default function Home() {
 
   return (
     <>
-      {/* Cursor lives OUTSIDE rd-root so nothing can clip or override it */}
       {!isMobile && (
-        <div ref={cursorRef} className="rd-cursor" />
+        <div
+          ref={cursorRef}
+          style={{
+            width: '32px',
+            height: '32px',
+            background: 'transparent',
+            border: '2.5px solid #0066FF',
+            borderRadius: '50%',
+            position: 'fixed',
+            pointerEvents: 'none',
+            zIndex: 99999,
+            transform: 'translate(-50%, -50%)',
+            left: '-999px',
+            top: '-999px',
+          }}
+        />
       )}
 
     <div className="rd-root">
@@ -316,27 +328,6 @@ export default function Home() {
         html, body, *, *::before, *::after {
           cursor: none !important;
         }
-
-        /* ── Single cursor: transparent circle with blue ring ── */
-        .rd-cursor {
-          width: 32px;
-          height: 32px;
-          background: transparent;
-          border: 2.5px solid #0066FF;
-          border-radius: 50%;
-          position: fixed;
-          pointer-events: none;
-          z-index: 99999;
-          transform: translate(-50%, -50%);
-          left: -999px;
-          top: -999px;
-        }
-
-        /* Light mode — use dark theme bg colour so it's always visible */
-        @media (prefers-color-scheme: light) {
-          .rd-cursor { border-color: #050d1a; }
-        }
-        .light-mode .rd-cursor { border-color: #050d1a !important; }
 
         .rd-root { overflow-x: hidden; }
 
