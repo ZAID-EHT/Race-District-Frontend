@@ -108,7 +108,7 @@ function CarouselDotSync() {
   return null;
 }
 
-// ── FIXED: single transform-only cursor, no React state, no double-positioning ──
+// Single transform-only cursor — no React state, no double-positioning, no lag
 function useSmoothCursor(enabled) {
   const elRef = useRef(null);
   const rafRef = useRef(null);
@@ -119,7 +119,7 @@ function useSmoothCursor(enabled) {
 
     const move = (e) => {
       posRef.current = { x: e.clientX, y: e.clientY };
-      if (rafRef.current) return; // one RAF queued at a time
+      if (rafRef.current) return;
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null;
         if (elRef.current) {
@@ -137,7 +137,7 @@ function useSmoothCursor(enabled) {
     };
   }, [enabled]);
 
-  return elRef; // returns a ref to attach to the blob div
+  return elRef;
 }
 
 export default function Home() {
@@ -154,7 +154,6 @@ export default function Home() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // ── FIXED: cursorRef is now a DOM ref, not coordinates ──
   const cursorRef = useSmoothCursor(!isMobile);
 
   const typeText = useTypewriter(['Aero Optimized', 'Built for Car Culture', 'Designed for Your Space', 'Simply Fast']);
@@ -183,7 +182,8 @@ export default function Home() {
 
   return (
     <div className="rd-root">
-      {/* ── FIXED: ref attached, no left/top, starts offscreen, moves via transform only ── */}
+
+      {/* Cursor blob — same soft blue glow in both dark and light mode */}
       {!isMobile && (
         <div
           ref={cursorRef}
@@ -303,35 +303,44 @@ export default function Home() {
       <CarouselDotSync />
 
       <style>{`
+
+        /* ── Hide the system mouse arrow everywhere on this page ── */
+        .rd-root,
+        .rd-root * {
+          cursor: none !important;
+        }
+
         .rd-root { overflow-x: hidden; }
 
-        /* ─── CURSOR BLOB ─── */
+        /* ──────────────────────────────────────────────────────────
+           CURSOR BLOB
+           Identical soft light-blue glow in BOTH dark & light mode.
+           Matches the screenshot: light sky-blue radial + blue dot.
+        ────────────────────────────────────────────────────────── */
         .rd-cursor-blob {
-          background: radial-gradient(circle, rgba(0,102,255,0.12) 0%, transparent 65%);
-          mix-blend-mode: screen;
-          transition: none;
-        }
-        @media (prefers-color-scheme: light) {
-          .rd-cursor-blob {
-            background: radial-gradient(circle, rgba(0,102,255,0.18) 0%, rgba(0,102,255,0.06) 50%, transparent 65%);
-            mix-blend-mode: normal;
-          }
-        }
-        .light-mode .rd-cursor-blob {
-          background: radial-gradient(circle, rgba(0,102,255,0.18) 0%, rgba(0,102,255,0.06) 50%, transparent 65%) !important;
-          mix-blend-mode: normal !important;
+          background: radial-gradient(
+            circle,
+            rgba(186, 218, 255, 0.60) 0%,
+            rgba(147, 197, 253, 0.28) 38%,
+            rgba(96,  165, 250, 0.10) 60%,
+            transparent 72%
+          );
+          mix-blend-mode: normal;
         }
 
+        /* Solid blue dot centred inside the glow */
         .rd-cursor-dot {
           position: absolute;
           left: 50%;
           top: 50%;
           transform: translate(-50%, -50%);
-          width: 16px;
-          height: 16px;
+          width: 18px;
+          height: 18px;
           border-radius: 50%;
-          background: #0066FF;
-          box-shadow: 0 0 12px rgba(0,102,255,0.5), 0 0 24px rgba(0,102,255,0.2);
+          background: #2180FF;
+          box-shadow:
+            0 0 0 3px rgba(33, 128, 255, 0.22),
+            0 0 10px rgba(33, 128, 255, 0.35);
           will-change: transform;
         }
 
@@ -475,7 +484,7 @@ export default function Home() {
           font-weight: 700;
           letter-spacing: 0.12em;
           border: none;
-          cursor: pointer;
+          cursor: none;
           clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
           transition: background 0.2s, transform 0.15s;
         }
@@ -493,7 +502,7 @@ export default function Home() {
           font-weight: 700;
           letter-spacing: 0.12em;
           border: 1.5px solid rgba(255,255,255,0.3);
-          cursor: pointer;
+          cursor: none;
           transition: border-color 0.2s, color 0.2s;
         }
         .rd-btn-secondary:hover { border-color: #0066FF; color: #0066FF; }
@@ -752,7 +761,7 @@ export default function Home() {
           font-size: 0.72rem;
           font-weight: 700;
           letter-spacing: 0.1em;
-          cursor: pointer;
+          cursor: none;
           transition: all 0.25s;
         }
         .rd-card-btn:hover { background: #0066FF; color: #fff; border-color: #0066FF; }
@@ -767,7 +776,7 @@ export default function Home() {
           font-size: 0.8rem;
           font-weight: 700;
           letter-spacing: 0.12em;
-          cursor: pointer;
+          cursor: none;
           transition: background 0.2s, color 0.2s;
           clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
         }
