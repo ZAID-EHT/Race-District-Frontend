@@ -815,7 +815,7 @@ export default function Home() {
           .rd-stat-label { font-size: 0.58rem; }
           .rd-stat-divider { height: 1.6rem; }
 
-          /* FIX: Frame sits BELOW text (order:1), centered and visible */
+          /* FIX: Frame sits BELOW text (order:1), centered with equal side spacing */
           .rd-hero-frame {
             order: 1;
             position: relative;
@@ -827,7 +827,7 @@ export default function Home() {
             align-items: center;
             justify-content: center;
             margin: 0;
-            padding: 1.5rem 0 2.5rem;
+            padding: 2rem 5vw;   /* ← equal 5vw padding on left AND right */
             grid-column: unset;
             grid-row: unset;
           }
@@ -844,13 +844,13 @@ export default function Home() {
             transform: translate(-50%, -50%);
           }
 
-          /* FIX: frame wrap centered and larger */
+          /* FIX: frame wrap centered with equal margins */
           .rd-frame-wrap {
             position: relative;
             z-index: 2;
-            width: 72vw;
-            max-width: 300px;
-            margin: 0 auto;
+            width: 90vw;         /* ← wider so it fills the space nicely */
+            max-width: 380px;
+            margin: 0 auto;        /* ← perfectly centered, equal left/right */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -881,9 +881,9 @@ export default function Home() {
           .rd-headline { font-size: 1.85rem; }
           .rd-stat-val { font-size: 1.2rem; }
           .rd-stats { gap: 0.7rem; }
-          .rd-frame-wrap { width: 70vw; margin: 0 auto; }
+          .rd-frame-wrap { width: 88vw; margin: 0 auto; }
         }
-      `}</style>s
+      `}</style>
     </div>
   );
 }
