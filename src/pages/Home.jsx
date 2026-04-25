@@ -174,12 +174,13 @@ export default function Home() {
   const displayProducts = featured.length ? featured.slice(0, 4) : products.slice(0, 4);
 
   return (
-    <div className="rd-root">
-
-      {/* Single cursor — transparent circle with blue ring, no system cursor */}
+    <>
+      {/* Cursor lives OUTSIDE rd-root so nothing can clip or override it */}
       {!isMobile && (
         <div ref={cursorRef} className="rd-cursor" />
       )}
+
+    <div className="rd-root">
 
       <section className="rd-hero">
         <div className="rd-hero-bg" />
@@ -287,12 +288,17 @@ export default function Home() {
           cursor: none !important;
         }
 
+        /* ── Hide system cursor — covers EVERY possible selector ── */
+        html, body, *, *::before, *::after {
+          cursor: none !important;
+        }
+
         /* ── Single cursor: transparent circle with blue ring ── */
         .rd-cursor {
           width: 32px;
           height: 32px;
           background: transparent;
-          border: 2px solid #0066FF;
+          border: 2.5px solid #0066FF;
           border-radius: 50%;
           position: fixed;
           pointer-events: none;
@@ -302,11 +308,11 @@ export default function Home() {
           top: -999px;
         }
 
-        /* Light mode — much darker blue so it pops on pale background */
+        /* Light mode — dark navy so it's always visible on pale background */
         @media (prefers-color-scheme: light) {
-          .rd-cursor { border-color: #003399; }
+          .rd-cursor { border-color: #002280; border-width: 2.5px; }
         }
-        .light-mode .rd-cursor { border-color: #003399 !important; }
+        .light-mode .rd-cursor { border-color: #002280 !important; border-width: 2.5px !important; }
 
         .rd-root { overflow-x: hidden; }
 
@@ -864,5 +870,6 @@ export default function Home() {
         }
       `}</style>
     </div>
+    </>
   );
 }
