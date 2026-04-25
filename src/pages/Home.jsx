@@ -310,41 +310,40 @@ export default function Home() {
           cursor: none !important;
         }
 
-        /* ── Ring cursor (snaps to mouse instantly) ── */
+        /* ── Ring cursor — small solid dot, snaps to mouse ── */
         .rd-cursor-ring {
-          width: 20px;
-          height: 20px;
-          border: 2px solid #0066FF;
+          width: 8px;
+          height: 8px;
+          background: #0066FF;
           border-radius: 50%;
           position: fixed;
           pointer-events: none;
           z-index: 99999;
           transform: translate(-50%, -50%) scale(1);
           transition: transform 0.1s;
-          /* NO mix-blend-mode — that was causing the double-ring illusion */
         }
 
-        /* ── Follower (lags 100ms, transparent with blue border) ── */
+        /* ── Follower — larger ring that lags behind ── */
         .rd-cursor-follower {
-          width: 40px;
-          height: 40px;
+          width: 36px;
+          height: 36px;
           background: transparent;
-          border: 1.5px solid rgba(0, 102, 255, 0.45);
+          border: 1.5px solid rgba(0, 102, 255, 0.6);
           border-radius: 50%;
           position: fixed;
           pointer-events: none;
           z-index: 99998;
           transform: translate(-50%, -50%);
-          transition: left 0.12s ease-out, top 0.12s ease-out;
+          transition: left 0.18s ease-out, top 0.18s ease-out;
         }
 
-        /* Light mode — make follower border more visible on pale bg */
+        /* Light mode — darker border so it's visible on pale bg */
         @media (prefers-color-scheme: light) {
-          .rd-cursor-ring     { border-color: #0052cc; }
-          .rd-cursor-follower { border-color: rgba(0, 82, 204, 0.65); }
+          .rd-cursor-ring     { background: #0052cc; }
+          .rd-cursor-follower { border-color: rgba(0, 82, 204, 0.7); }
         }
-        .light-mode .rd-cursor-ring     { border-color: #0052cc !important; }
-        .light-mode .rd-cursor-follower { border-color: rgba(0, 82, 204, 0.65) !important; }
+        .light-mode .rd-cursor-ring     { background: #0052cc !important; }
+        .light-mode .rd-cursor-follower { border-color: rgba(0, 82, 204, 0.7) !important; }
 
         .rd-root { overflow-x: hidden; }
 
