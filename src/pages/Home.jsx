@@ -308,11 +308,11 @@ export default function Home() {
           top: -999px;
         }
 
-        /* Light mode — dark navy so it's always visible on pale background */
+        /* Light mode — use dark theme bg colour so it's always visible */
         @media (prefers-color-scheme: light) {
-          .rd-cursor { border-color: #002280; border-width: 2.5px; }
+          .rd-cursor { border-color: #050d1a; }
         }
-        .light-mode .rd-cursor { border-color: #002280 !important; border-width: 2.5px !important; }
+        .light-mode .rd-cursor { border-color: #050d1a !important; }
 
         .rd-root { overflow-x: hidden; }
 
