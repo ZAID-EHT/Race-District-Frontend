@@ -108,41 +108,23 @@ function CarouselDotSync() {
   return null;
 }
 
-// Race District cursor — ring + delayed follower (ported from max_verstapen.html, blue-themed)
+// Single cursor circle — transparent fill, solid ring border, snaps to mouse
 function useCursor(enabled) {
-  const ringRef = useRef(null);
-  const followerRef = useRef(null);
+  const cursorRef = useRef(null);
 
   useEffect(() => {
     if (!enabled) return;
-
     const onMove = (e) => {
-      // Ring snaps instantly
-      if (ringRef.current) {
-        ringRef.current.style.left = e.clientX + 'px';
-        ringRef.current.style.top  = e.clientY + 'px';
-      }
-      // Follower uses CSS transition (left/top) for smooth lag — no setTimeout needed
-      if (followerRef.current) {
-        followerRef.current.style.left = e.clientX + 'px';
-        followerRef.current.style.top  = e.clientY + 'px';
+      if (cursorRef.current) {
+        cursorRef.current.style.left = e.clientX + 'px';
+        cursorRef.current.style.top  = e.clientY + 'px';
       }
     };
-
-    const onDown = () => { if (ringRef.current) ringRef.current.style.transform = 'translate(-50%, -50%) scale(0.8)'; };
-    const onUp   = () => { if (ringRef.current) ringRef.current.style.transform = 'translate(-50%, -50%) scale(1)'; };
-
     window.addEventListener('mousemove', onMove, { passive: true });
-    window.addEventListener('mousedown', onDown);
-    window.addEventListener('mouseup',   onUp);
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mousedown', onDown);
-      window.removeEventListener('mouseup',   onUp);
-    };
+    return () => window.removeEventListener('mousemove', onMove);
   }, [enabled]);
 
-  return { ringRef, followerRef };
+  return { cursorRef };
 }
 
 export default function Home() {
@@ -165,7 +147,7 @@ export default function Home() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  const { ringRef, followerRef } = useCursor(!isMobile);
+  const { cursorRef } = useCursor(!isMobile);
 
   const typeText = useTypewriter(['Aero Optimized', 'Built for Car Culture', 'Designed for Your Space', 'Simply Fast']);
   const designCount = useCountUp(50);
@@ -194,13 +176,9 @@ export default function Home() {
   return (
     <div className="rd-root">
 
-      {/* Ring cursor — snaps instantly to mouse */}
+      {/* Single cursor — transparent circle with blue ring, no system cursor */}
       {!isMobile && (
-        <div ref={ringRef} className="rd-cursor-ring" />
-      )}
-      {/* Follower — lags 100ms behind for trail effect */}
-      {!isMobile && (
-        <div ref={followerRef} className="rd-cursor-follower" />
+        <div ref={cursorRef} className="rd-cursor" />
       )}
 
       <section className="rd-hero">
@@ -304,46 +282,26 @@ export default function Home() {
 
       <style>{`
 
-        /* ── Hide default system cursor everywhere ── */
-        .rd-root,
-        .rd-root * {
+        /* ── Hide system cursor everywhere — dark AND light mode ── */
+        *, *::before, *::after {
           cursor: none !important;
         }
 
-        /* ── Ring cursor — small solid dot, snaps to mouse ── */
-        .rd-cursor-ring {
-          width: 8px;
-          height: 8px;
-          background: #0066FF;
+        /* ── Single cursor: transparent circle with blue ring ── */
+        .rd-cursor {
+          width: 32px;
+          height: 32px;
+          background: transparent;
+          border: 2px solid #0066FF;
           border-radius: 50%;
           position: fixed;
           pointer-events: none;
           z-index: 99999;
-          transform: translate(-50%, -50%) scale(1);
-          transition: transform 0.1s;
-        }
-
-        /* ── Follower — larger ring that lags behind ── */
-        .rd-cursor-follower {
-          width: 36px;
-          height: 36px;
-          background: transparent;
-          border: 1.5px solid rgba(0, 102, 255, 0.6);
-          border-radius: 50%;
-          position: fixed;
-          pointer-events: none;
-          z-index: 99998;
           transform: translate(-50%, -50%);
-          transition: left 0.18s ease-out, top 0.18s ease-out;
+          /* start offscreen so it doesn't flash at 0,0 */
+          left: -999px;
+          top: -999px;
         }
-
-        /* Light mode — darker border so it's visible on pale bg */
-        @media (prefers-color-scheme: light) {
-          .rd-cursor-ring     { background: #0052cc; }
-          .rd-cursor-follower { border-color: rgba(0, 82, 204, 0.7); }
-        }
-        .light-mode .rd-cursor-ring     { background: #0052cc !important; }
-        .light-mode .rd-cursor-follower { border-color: rgba(0, 82, 204, 0.7) !important; }
 
         .rd-root { overflow-x: hidden; }
 
