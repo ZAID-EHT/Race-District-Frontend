@@ -108,7 +108,8 @@ function CarouselDotSync() {
   return null;
 }
 
-// Single transform-only cursor — no React state, no double-positioning, no lag
+// FIX: Use lazy initializer so isMobile is correct on first render,
+// preventing useSmoothCursor from receiving wrong `enabled` value.
 function useSmoothCursor(enabled) {
   const elRef = useRef(null);
   const rafRef = useRef(null);
@@ -146,10 +147,16 @@ export default function Home() {
   const [featured, setFeatured] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [isMobile, setIsMobile] = useState(false);
+  // FIX 1: Use lazy initializer so isMobile is correct on the FIRST render.
+  // Previously useState(false) caused useSmoothCursor(true→false) on first paint,
+  // which meant the mousemove listener was never attached, leaving the blob frozen.
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') return window.innerWidth <= 768;
+    return false;
+  });
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 768);
-    check();
     window.addEventListener('resize', check, { passive: true });
     return () => window.removeEventListener('resize', check);
   }, []);
@@ -183,7 +190,7 @@ export default function Home() {
   return (
     <div className="rd-root">
 
-      {/* Cursor blob — same soft blue glow in both dark and light mode */}
+      {/* Cursor blob */}
       {!isMobile && (
         <div
           ref={cursorRef}
@@ -198,7 +205,9 @@ export default function Home() {
             pointerEvents: 'none',
             zIndex: 9999,
             willChange: 'transform',
-            transform: 'translate3d(-999px,-999px,0)',
+            // FIX 2: Start fully off-screen so the blob doesn't flash
+            // in the center of the page before the first mousemove fires.
+            transform: 'translate3d(-9999px,-9999px,0)',
           }}
         >
           <div className="rd-cursor-dot" />
@@ -216,9 +225,11 @@ export default function Home() {
             <span className="rd-headline-accent">SPEED</span>
           </h1>
 
+          {/* FIX 3: Added position:relative and z-index so the typewriter row
+              renders above the hero background and is never clipped/hidden */}
           <div className="rd-typewriter-row">
             <span className="rd-typewriter font-orbitron">{typeText}</span>
-            <span className="rd-cursor" />
+            <span className="rd-cursor-blink" />
           </div>
 
           <p className="rd-body">
@@ -314,8 +325,6 @@ export default function Home() {
 
         /* ──────────────────────────────────────────────────────────
            CURSOR BLOB
-           Identical soft light-blue glow in BOTH dark & light mode.
-           Matches the screenshot: light sky-blue radial + blue dot.
         ────────────────────────────────────────────────────────── */
         .rd-cursor-blob {
           background: radial-gradient(
@@ -328,7 +337,6 @@ export default function Home() {
           mix-blend-mode: normal;
         }
 
-        /* Solid blue dot centred inside the glow */
         .rd-cursor-dot {
           position: absolute;
           left: 50%;
@@ -434,12 +442,16 @@ export default function Home() {
           display: block;
         }
 
+        /* FIX 3: position:relative + z-index ensures typewriter row is
+           always visible above hero background layers */
         .rd-typewriter-row {
           display: flex;
           align-items: center;
           min-height: 2.2rem;
           gap: 0.4rem;
           overflow: visible;
+          position: relative;
+          z-index: 10;
         }
         .rd-typewriter {
           font-size: clamp(1rem, 2.2vw, 1.4rem);
@@ -450,7 +462,9 @@ export default function Home() {
         @media (prefers-color-scheme: light) { .rd-typewriter { color: #334155; } }
         .light-mode .rd-typewriter { color: #334155 !important; }
 
-        .rd-cursor {
+        /* Renamed from .rd-cursor to .rd-cursor-blink to avoid
+           conflict with any global .rd-cursor selector */
+        .rd-cursor-blink {
           display: inline-block;
           width: 3px;
           height: 1.4rem;
@@ -875,7 +889,7 @@ export default function Home() {
           .rd-stat-label { font-size: 0.58rem; }
           .rd-stat-divider { height: 1.6rem; }
           .rd-hero-frame-desktop { display: none; }
-          .rd-cursor { display: none !important; }
+          .rd-cursor-blink { display: none !important; }
           .rd-scroll-arrow { display: none; }
           .rd-grid { display: none !important; }
           .rd-carousel { display: block; }
