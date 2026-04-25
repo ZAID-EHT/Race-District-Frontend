@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { productAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
@@ -108,27 +108,57 @@ function CarouselDotSync() {
   return null;
 }
 
+// Smooth cursor hook with RAF and throttling
+function useSmoothCursor(enabled) {
+  const [cursor, setCursor] = useState({ x: -999, y: -999 });
+  const rafRef = useRef(null);
+  const posRef = useRef({ x: -999, y: -999 });
+  const lastUpdateRef = useRef(0);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const THROTTLE_MS = 8; // ~120fps max
+
+    const move = (e) => {
+      posRef.current = { x: e.clientX, y: e.clientY };
+
+      const now = performance.now();
+      if (now - lastUpdateRef.current < THROTTLE_MS) return;
+      lastUpdateRef.current = now;
+
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        setCursor(posRef.current);
+      });
+    };
+
+    window.addEventListener('mousemove', move, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', move);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [enabled]);
+
+  return cursor;
+}
+
 export default function Home() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [featured, setFeatured] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cursor, setCursor] = useState({ x: -999, y: -999 });
 
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth <= 600);
+    const check = () => setIsMobile(window.innerWidth <= 768);
     check();
-    window.addEventListener('resize', check);
+    window.addEventListener('resize', check, { passive: true });
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  useEffect(() => {
-    if (isMobile) return;
-    const move = (e) => setCursor({ x: e.clientX, y: e.clientY });
-    window.addEventListener('mousemove', move);
-    return () => window.removeEventListener('mousemove', move);
-  }, [isMobile]);
+  // Use smooth cursor hook
+  const cursor = useSmoothCursor(!isMobile);
 
   const typeText = useTypewriter(['Aero Optimized', 'Built for Car Culture', 'Designed for Your Space', 'Simply Fast']);
   const designCount = useCountUp(50);
@@ -159,16 +189,16 @@ export default function Home() {
       {!isMobile && (
         <div className="rd-cursor-blob" style={{
           position: 'fixed',
-          left: cursor.x - 180,
-          top: cursor.y - 180,
-          width: 360,
-          height: 360,
+          left: cursor.x - 120,
+          top: cursor.y - 120,
+          width: 240,
+          height: 240,
           borderRadius: '50%',
           pointerEvents: 'none',
           zIndex: 9999,
-          transition: 'left 0.12s ease, top 0.12s ease',
+          willChange: 'transform',
+          transform: `translate3d(${cursor.x - 120}px, ${cursor.y - 120}px, 0)`,
         }}>
-          {/* FIX: Solid blue center dot for both dark and light mode */}
           <div className="rd-cursor-dot" />
         </div>
       )}
@@ -273,33 +303,35 @@ export default function Home() {
       <style>{`
         .rd-root { overflow-x: hidden; }
 
-        /* ─── CURSOR BLOB ─── */
+        /* ─── SMOOTH CURSOR BLOB ─── */
         .rd-cursor-blob {
-          background: radial-gradient(circle, rgba(0,102,255,0.13) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(0,102,255,0.12) 0%, transparent 65%);
           mix-blend-mode: screen;
+          transition: none;
         }
         @media (prefers-color-scheme: light) {
           .rd-cursor-blob {
-            background: radial-gradient(circle, rgba(0,102,255,0.25) 0%, rgba(0,102,255,0.1) 50%, transparent 70%);
+            background: radial-gradient(circle, rgba(0,102,255,0.18) 0%, rgba(0,102,255,0.06) 50%, transparent 65%);
             mix-blend-mode: normal;
           }
         }
         .light-mode .rd-cursor-blob {
-          background: radial-gradient(circle, rgba(0,102,255,0.25) 0%, rgba(0,102,255,0.1) 50%, transparent 70%) !important;
+          background: radial-gradient(circle, rgba(0,102,255,0.18) 0%, rgba(0,102,255,0.06) 50%, transparent 65%) !important;
           mix-blend-mode: normal !important;
         }
 
-        /* FIX: Solid blue center dot inside cursor blob */
+        /* SMOOTH: Solid blue center dot — smaller, hardware accelerated */
         .rd-cursor-dot {
           position: absolute;
           left: 50%;
           top: 50%;
           transform: translate(-50%, -50%);
-          width: 24px;
-          height: 24px;
+          width: 16px;
+          height: 16px;
           border-radius: 50%;
           background: #0066FF;
-          box-shadow: 0 0 20px rgba(0,102,255,0.6), 0 0 40px rgba(0,102,255,0.3);
+          box-shadow: 0 0 12px rgba(0,102,255,0.5), 0 0 24px rgba(0,102,255,0.2);
+          will-change: transform;
         }
 
         .rd-hero {
