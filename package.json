@@ -1,0 +1,51 @@
+{
+  "name": "racedistrict-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "homepage": "/",
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.6.0",
+    "firebase": "^12.11.0",
+    "isomorphic-dompurify": "^3.8.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.0",
+    "react-scripts": "5.0.1",
+    "three": "^0.183.2",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "serve": "serve -s build -l 3000",
+    "pm2:start": "pm2 start serve --name racedistrict-frontend -- -s build -l 3000",
+    "pm2:stop": "pm2 stop racedistrict-frontend",
+    "pm2:restart": "pm2 restart racedistrict-frontend",
+    "pm2:delete": "pm2 delete racedistrict-frontend",
+    "pm2:logs": "pm2 logs racedistrict-frontend"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "proxy": "http://localhost:5000"
+}
