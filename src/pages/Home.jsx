@@ -167,7 +167,10 @@ export default function Home() {
           pointerEvents: 'none',
           zIndex: 9999,
           transition: 'left 0.12s ease, top 0.12s ease',
-        }} />
+        }}>
+          {/* FIX: Solid blue center dot for both dark and light mode */}
+          <div className="rd-cursor-dot" />
+        </div>
       )}
 
       <section className="rd-hero">
@@ -284,6 +287,19 @@ export default function Home() {
         .light-mode .rd-cursor-blob {
           background: radial-gradient(circle, rgba(0,102,255,0.25) 0%, rgba(0,102,255,0.1) 50%, transparent 70%) !important;
           mix-blend-mode: normal !important;
+        }
+
+        /* FIX: Solid blue center dot inside cursor blob */
+        .rd-cursor-dot {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: #0066FF;
+          box-shadow: 0 0 20px rgba(0,102,255,0.6), 0 0 40px rgba(0,102,255,0.3);
         }
 
         .rd-hero {
