@@ -108,37 +108,41 @@ function CarouselDotSync() {
   return null;
 }
 
-// FIX: Use lazy initializer so isMobile is correct on first render,
-// preventing useSmoothCursor from receiving wrong `enabled` value.
-function useSmoothCursor(enabled) {
-  const elRef = useRef(null);
-  const rafRef = useRef(null);
-  const posRef = useRef({ x: -999, y: -999 });
+// Race District cursor — ring + delayed follower (ported from max_verstapen.html, blue-themed)
+function useCursor(enabled) {
+  const ringRef = useRef(null);
+  const followerRef = useRef(null);
 
   useEffect(() => {
     if (!enabled) return;
 
-    const move = (e) => {
-      posRef.current = { x: e.clientX, y: e.clientY };
-      if (rafRef.current) return;
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = null;
-        if (elRef.current) {
-          const x = posRef.current.x - 120;
-          const y = posRef.current.y - 120;
-          elRef.current.style.transform = `translate3d(${x}px,${y}px,0)`;
+    const onMove = (e) => {
+      if (ringRef.current) {
+        ringRef.current.style.left = e.clientX + 'px';
+        ringRef.current.style.top  = e.clientY + 'px';
+      }
+      setTimeout(() => {
+        if (followerRef.current) {
+          followerRef.current.style.left = e.clientX + 'px';
+          followerRef.current.style.top  = e.clientY + 'px';
         }
-      });
+      }, 100);
     };
 
-    window.addEventListener('mousemove', move, { passive: true });
+    const onDown = () => { if (ringRef.current) ringRef.current.style.transform = 'translate(-50%, -50%) scale(0.8)'; };
+    const onUp   = () => { if (ringRef.current) ringRef.current.style.transform = 'translate(-50%, -50%) scale(1)'; };
+
+    window.addEventListener('mousemove', onMove, { passive: true });
+    window.addEventListener('mousedown', onDown);
+    window.addEventListener('mouseup',   onUp);
     return () => {
-      window.removeEventListener('mousemove', move);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mousedown', onDown);
+      window.removeEventListener('mouseup',   onUp);
     };
   }, [enabled]);
 
-  return elRef;
+  return { ringRef, followerRef };
 }
 
 export default function Home() {
@@ -161,7 +165,7 @@ export default function Home() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  const cursorRef = useSmoothCursor(!isMobile);
+  const { ringRef, followerRef } = useCursor(!isMobile);
 
   const typeText = useTypewriter(['Aero Optimized', 'Built for Car Culture', 'Designed for Your Space', 'Simply Fast']);
   const designCount = useCountUp(50);
@@ -190,28 +194,13 @@ export default function Home() {
   return (
     <div className="rd-root">
 
-      {/* Cursor blob */}
+      {/* Ring cursor — snaps instantly to mouse */}
       {!isMobile && (
-        <div
-          ref={cursorRef}
-          className="rd-cursor-blob"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: 240,
-            height: 240,
-            borderRadius: '50%',
-            pointerEvents: 'none',
-            zIndex: 9999,
-            willChange: 'transform',
-            // FIX 2: Start fully off-screen so the blob doesn't flash
-            // in the center of the page before the first mousemove fires.
-            transform: 'translate3d(-9999px,-9999px,0)',
-          }}
-        >
-          <div className="rd-cursor-dot" />
-        </div>
+        <div ref={ringRef} className="rd-cursor-ring" />
+      )}
+      {/* Follower — lags 100ms behind for trail effect */}
+      {!isMobile && (
+        <div ref={followerRef} className="rd-cursor-follower" />
       )}
 
       <section className="rd-hero">
@@ -315,42 +304,40 @@ export default function Home() {
 
       <style>{`
 
-        /* ── Hide the system mouse arrow everywhere on this page ── */
+        /* ── Hide default system cursor everywhere ── */
         .rd-root,
         .rd-root * {
           cursor: none !important;
         }
 
-        .rd-root { overflow-x: hidden; }
-
-        /* ──────────────────────────────────────────────────────────
-           CURSOR BLOB
-        ────────────────────────────────────────────────────────── */
-        .rd-cursor-blob {
-          background: radial-gradient(
-            circle,
-            rgba(186, 218, 255, 0.60) 0%,
-            rgba(147, 197, 253, 0.28) 38%,
-            rgba(96,  165, 250, 0.10) 60%,
-            transparent 72%
-          );
-          mix-blend-mode: normal;
-        }
-
-        .rd-cursor-dot {
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          transform: translate(-50%, -50%);
-          width: 18px;
-          height: 18px;
+        /* ── Ring cursor (snaps to mouse instantly) ── */
+        .rd-cursor-ring {
+          width: 20px;
+          height: 20px;
+          border: 2px solid #0066FF;
           border-radius: 50%;
-          background: #2180FF;
-          box-shadow:
-            0 0 0 3px rgba(33, 128, 255, 0.22),
-            0 0 10px rgba(33, 128, 255, 0.35);
-          will-change: transform;
+          position: fixed;
+          pointer-events: none;
+          z-index: 99999;
+          transform: translate(-50%, -50%) scale(1);
+          transition: transform 0.1s;
+          mix-blend-mode: difference;
         }
+
+        /* ── Follower (lags 100ms, soft blue fill) ── */
+        .rd-cursor-follower {
+          width: 40px;
+          height: 40px;
+          background: rgba(0, 102, 255, 0.15);
+          border-radius: 50%;
+          position: fixed;
+          pointer-events: none;
+          z-index: 99998;
+          transform: translate(-50%, -50%);
+          transition: transform 0.3s ease-out;
+        }
+
+        .rd-root { overflow-x: hidden; }
 
         /* ─── HERO ─── */
         .rd-hero {
