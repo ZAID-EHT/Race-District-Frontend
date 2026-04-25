@@ -167,7 +167,6 @@ export default function Home() {
           pointerEvents: 'none',
           zIndex: 9999,
           transition: 'left 0.12s ease, top 0.12s ease',
-          mixBlendMode: 'screen',
         }} />
       )}
 
@@ -274,15 +273,17 @@ export default function Home() {
         /* ─── CURSOR BLOB ─── */
         .rd-cursor-blob {
           background: radial-gradient(circle, rgba(0,102,255,0.13) 0%, transparent 70%);
+          mix-blend-mode: screen;
         }
-        /* FIX: Stronger, visible blob in light mode */
         @media (prefers-color-scheme: light) {
           .rd-cursor-blob {
-            background: radial-gradient(circle, rgba(0,102,255,0.35) 0%, rgba(0,102,255,0.15) 40%, transparent 70%);
+            background: radial-gradient(circle, rgba(0,102,255,0.25) 0%, rgba(0,102,255,0.1) 50%, transparent 70%);
+            mix-blend-mode: normal;
           }
         }
         .light-mode .rd-cursor-blob {
-          background: radial-gradient(circle, rgba(0,102,255,0.35) 0%, rgba(0,102,255,0.15) 40%, transparent 70%) !important;
+          background: radial-gradient(circle, rgba(0,102,255,0.25) 0%, rgba(0,102,255,0.1) 50%, transparent 70%) !important;
+          mix-blend-mode: normal !important;
         }
 
         .rd-hero {
