@@ -298,10 +298,15 @@ export default function Home() {
           pointer-events: none;
           z-index: 99999;
           transform: translate(-50%, -50%);
-          /* start offscreen so it doesn't flash at 0,0 */
           left: -999px;
           top: -999px;
         }
+
+        /* Light mode — much darker blue so it pops on pale background */
+        @media (prefers-color-scheme: light) {
+          .rd-cursor { border-color: #003399; }
+        }
+        .light-mode .rd-cursor { border-color: #003399 !important; }
 
         .rd-root { overflow-x: hidden; }
 
