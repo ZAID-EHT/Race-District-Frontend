@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { productAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
@@ -108,74 +108,13 @@ function CarouselDotSync() {
   return null;
 }
 
-// Single cursor circle — fully inline styled, no CSS class needed
-function useCursor(enabled) {
-  const cursorRef = useRef(null);
 
-  useEffect(() => {
-    if (!enabled) return;
-
-    const getColor = () => {
-      const isLight =
-        document.documentElement.classList.contains('light-mode') ||
-        document.body.classList.contains('light-mode') ||
-        window.matchMedia('(prefers-color-scheme: light)').matches;
-      return isLight ? '#050d1a' : '#0066FF';
-    };
-
-    const apply = (e) => {
-      if (!cursorRef.current) return;
-      cursorRef.current.style.left = e.clientX + 'px';
-      cursorRef.current.style.top  = e.clientY + 'px';
-      cursorRef.current.style.borderColor = getColor();
-    };
-
-    // Also update colour immediately when theme class changes
-    const observer = new MutationObserver(() => {
-      if (cursorRef.current) cursorRef.current.style.borderColor = getColor();
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    observer.observe(document.body,            { attributes: true, attributeFilter: ['class'] });
-
-    if (cursorRef.current) cursorRef.current.style.borderColor = getColor();
-
-    // Destroy any OTHER cursor elements injected by other components (App, Layout, etc.)
-    document.querySelectorAll('[class*="cursor"]:not([data-rd-cursor])').forEach(el => {
-      const s = window.getComputedStyle(el);
-      if (s.position === 'fixed' && s.borderRadius === '50%') el.style.display = 'none';
-    });
-
-    window.addEventListener('mousemove', apply, { passive: true });
-    return () => {
-      window.removeEventListener('mousemove', apply);
-      observer.disconnect();
-    };
-  }, [enabled]);
-
-  return { cursorRef };
-}
 
 export default function Home() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [featured, setFeatured] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // FIX 1: Use lazy initializer so isMobile is correct on the FIRST render.
-  // Previously useState(false) caused useSmoothCursor(true→false) on first paint,
-  // which meant the mousemove listener was never attached, leaving the blob frozen.
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window !== 'undefined') return window.innerWidth <= 768;
-    return false;
-  });
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', check, { passive: true });
-    return () => window.removeEventListener('resize', check);
-  }, []);
-
-  const { cursorRef } = useCursor(!isMobile);
 
   const typeText = useTypewriter(['Aero Optimized', 'Built for Car Culture', 'Designed for Your Space', 'Simply Fast']);
   const designCount = useCountUp(50);
@@ -203,26 +142,6 @@ export default function Home() {
 
   return (
     <>
-      {!isMobile && (
-        <div
-          ref={cursorRef}
-          data-rd-cursor="true"
-          style={{
-            width: '32px',
-            height: '32px',
-            background: 'transparent',
-            border: '2.5px solid #0066FF',
-            borderRadius: '50%',
-            position: 'fixed',
-            pointerEvents: 'none',
-            zIndex: 99999,
-            transform: 'translate(-50%, -50%)',
-            left: '-999px',
-            top: '-999px',
-          }}
-        />
-      )}
-
     <div className="rd-root">
 
       <section className="rd-hero">
