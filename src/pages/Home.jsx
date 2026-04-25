@@ -156,7 +156,6 @@ export default function Home() {
 
   return (
     <div className="rd-root">
-      {/* FIX: Cursor blob — works in BOTH dark and light mode */}
       {!isMobile && (
         <div className="rd-cursor-blob" style={{
           position: 'fixed',
@@ -172,7 +171,6 @@ export default function Home() {
         }} />
       )}
 
-      {/* ─── HERO ─── */}
       <section className="rd-hero">
         <div className="rd-hero-bg" />
 
@@ -219,7 +217,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* FIX: Desktop frame inside hero */}
         <div className="rd-hero-frame-desktop">
           <div className="rd-frame-glow-desktop" />
           <div className="rd-frame-wrap-desktop">
@@ -232,7 +229,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── MOBILE FRAME SECTION (separate on scroll) ─── */}
       <section className="rd-frame-section-mobile">
         <div className="rd-frame-section-bg-mobile" />
         <div className="rd-frame-glow-mobile" />
@@ -241,7 +237,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── FEATURED GEAR ─── */}
       <section className="rd-featured">
         <div className="rd-section-head">
           <p className="rd-section-eyebrow font-orbitron">Our Collection</p>
@@ -280,16 +275,16 @@ export default function Home() {
         .rd-cursor-blob {
           background: radial-gradient(circle, rgba(0,102,255,0.13) 0%, transparent 70%);
         }
+        /* FIX: Stronger, visible blob in light mode */
         @media (prefers-color-scheme: light) {
           .rd-cursor-blob {
-            background: radial-gradient(circle, rgba(0,102,255,0.18) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(0,102,255,0.35) 0%, rgba(0,102,255,0.15) 40%, transparent 70%);
           }
         }
         .light-mode .rd-cursor-blob {
-          background: radial-gradient(circle, rgba(0,102,255,0.18) 0%, transparent 70%) !important;
+          background: radial-gradient(circle, rgba(0,102,255,0.35) 0%, rgba(0,102,255,0.15) 40%, transparent 70%) !important;
         }
 
-        /* ─── HERO ─── */
         .rd-hero {
           position: relative;
           min-height: 100vh;
@@ -503,7 +498,6 @@ export default function Home() {
         @media (prefers-color-scheme: light) { .rd-stat-divider { background: rgba(0,0,0,0.1); } }
         .light-mode .rd-stat-divider { background: rgba(0,0,0,0.1) !important; }
 
-        /* ─── DESKTOP FRAME (inside hero) ─── */
         .rd-hero-frame-desktop {
           position: relative;
           z-index: 10;
@@ -548,7 +542,6 @@ export default function Home() {
         }
         @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 55%{transform:translateX(-50%) translateY(-8px)} }
 
-        /* ─── MOBILE FRAME SECTION (separate on scroll) ─── */
         .rd-frame-section-mobile {
           position: relative;
           display: flex;
@@ -607,7 +600,6 @@ export default function Home() {
           display: block !important;
         }
 
-        /* ─── FEATURED SECTION ─── */
         .rd-featured {
           padding: 7rem 6vw;
           background: var(--bg-primary, #050d1a);
@@ -775,15 +767,12 @@ export default function Home() {
         @media (prefers-color-scheme: light) { .rd-dot { background: rgba(0,0,0,0.15); } }
         .light-mode .rd-dot { background: rgba(0,0,0,0.15) !important; }
 
-        /* ─── DESKTOP ─── */
         @media (min-width: 900px) {
           .rd-hero { min-height: 100vh; height: auto; padding-bottom: 5rem; }
           .rd-carousel { display: none !important; }
-          /* Hide mobile frame section on desktop */
           .rd-frame-section-mobile { display: none; }
         }
 
-        /* ─── TABLET ─── */
         @media (max-width: 900px) and (min-width: 601px) {
           .rd-hero {
             grid-template-columns: 1fr;
@@ -808,11 +797,9 @@ export default function Home() {
           .rd-grid { grid-template-columns: repeat(2, 1fr); }
           .rd-carousel { display: none; }
           .rd-grid { display: grid !important; }
-          /* Show mobile frame section on tablet */
           .rd-frame-section-mobile { display: flex; }
         }
 
-        /* ─── MOBILE ─── */
         @media (max-width: 600px) {
           .rd-hero {
             display: flex;
@@ -873,7 +860,6 @@ export default function Home() {
           .rd-stat-label { font-size: 0.58rem; }
           .rd-stat-divider { height: 1.6rem; }
 
-          /* Hide desktop frame on mobile */
           .rd-hero-frame-desktop { display: none; }
 
           .rd-cursor { display: none !important; }
@@ -883,8 +869,6 @@ export default function Home() {
           .rd-carousel { display: block; }
           .rd-featured { padding: 3.5rem 0; }
           .rd-section-head { padding: 0 5vw; }
-          
-          /* Show mobile frame section */
           .rd-frame-section-mobile { display: flex; }
         }
 
