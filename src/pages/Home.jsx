@@ -156,15 +156,15 @@ export default function Home() {
 
   return (
     <div className="rd-root">
+      {/* FIX: Cursor blob — works in BOTH dark and light mode */}
       {!isMobile && (
-        <div style={{
+        <div className="rd-cursor-blob" style={{
           position: 'fixed',
           left: cursor.x - 180,
           top: cursor.y - 180,
           width: 360,
           height: 360,
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(0,102,255,0.13) 0%, transparent 70%)',
           pointerEvents: 'none',
           zIndex: 9999,
           transition: 'left 0.12s ease, top 0.12s ease',
@@ -172,7 +172,7 @@ export default function Home() {
         }} />
       )}
 
-      {/* ─── HERO TEXT ONLY (no frame) ─── */}
+      {/* ─── HERO ─── */}
       <section className="rd-hero">
         <div className="rd-hero-bg" />
 
@@ -219,16 +219,24 @@ export default function Home() {
           </div>
         </div>
 
+        {/* FIX: Desktop frame inside hero */}
+        <div className="rd-hero-frame-desktop">
+          <div className="rd-frame-glow-desktop" />
+          <div className="rd-frame-wrap-desktop">
+            <FrameViewer imageSrc={null} />
+          </div>
+        </div>
+
         <div className="rd-scroll-arrow">
           <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
         </div>
       </section>
 
-      {/* ─── FRAME SECTION (separate, full page on scroll) ─── */}
-      <section className="rd-frame-section">
-        <div className="rd-frame-section-bg" />
-        <div className="rd-frame-glow" />
-        <div className="rd-frame-section-wrap">
+      {/* ─── MOBILE FRAME SECTION (separate on scroll) ─── */}
+      <section className="rd-frame-section-mobile">
+        <div className="rd-frame-section-bg-mobile" />
+        <div className="rd-frame-glow-mobile" />
+        <div className="rd-frame-wrap-mobile">
           <FrameViewer imageSrc={null} />
         </div>
       </section>
@@ -268,17 +276,32 @@ export default function Home() {
       <style>{`
         .rd-root { overflow-x: hidden; }
 
+        /* ─── CURSOR BLOB ─── */
+        .rd-cursor-blob {
+          background: radial-gradient(circle, rgba(0,102,255,0.13) 0%, transparent 70%);
+        }
+        @media (prefers-color-scheme: light) {
+          .rd-cursor-blob {
+            background: radial-gradient(circle, rgba(0,102,255,0.18) 0%, transparent 70%);
+          }
+        }
+        .light-mode .rd-cursor-blob {
+          background: radial-gradient(circle, rgba(0,102,255,0.18) 0%, transparent 70%) !important;
+        }
+
         /* ─── HERO ─── */
         .rd-hero {
           position: relative;
           min-height: 100vh;
-          display: flex;
-          flex-direction: column;
+          display: grid;
+          grid-template-columns: 1.1fr 0.9fr;
+          grid-template-rows: 1fr auto;
           align-items: center;
-          justify-content: center;
+          gap: 0;
           padding: 7rem 6vw 5rem;
           box-sizing: border-box;
           overflow: hidden;
+          overflow-y: visible;
         }
 
         .rd-hero-bg {
@@ -323,8 +346,8 @@ export default function Home() {
           display: flex;
           flex-direction: column;
           gap: 1.4rem;
-          align-items: center;
-          text-align: center;
+          grid-column: 1;
+          grid-row: 1;
           max-width: 600px;
         }
 
@@ -399,7 +422,6 @@ export default function Home() {
           display: flex;
           gap: 1rem;
           flex-wrap: wrap;
-          justify-content: center;
         }
 
         .rd-btn-primary {
@@ -481,6 +503,40 @@ export default function Home() {
         @media (prefers-color-scheme: light) { .rd-stat-divider { background: rgba(0,0,0,0.1); } }
         .light-mode .rd-stat-divider { background: rgba(0,0,0,0.1) !important; }
 
+        /* ─── DESKTOP FRAME (inside hero) ─── */
+        .rd-hero-frame-desktop {
+          position: relative;
+          z-index: 10;
+          grid-column: 2;
+          grid-row: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          justify-self: center;
+          height: 75vh;
+          max-height: 620px;
+        }
+
+        .rd-frame-glow-desktop {
+          position: absolute;
+          width: 260px;
+          height: 260px;
+          background: #0066FF;
+          border-radius: 50%;
+          filter: blur(90px);
+          opacity: 0.18;
+          animation: pulse 4s ease-in-out infinite;
+        }
+
+        .rd-frame-wrap-desktop {
+          position: relative;
+          z-index: 2;
+          width: 100%;
+          max-width: 460px;
+          margin-top: 0;
+        }
+        @keyframes pulse { 0%,100%{opacity:0.18;transform:scale(1)} 50%{opacity:0.28;transform:scale(1.1)} }
+
         .rd-scroll-arrow {
           position: absolute;
           bottom: 1.8rem;
@@ -492,59 +548,57 @@ export default function Home() {
         }
         @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 55%{transform:translateX(-50%) translateY(-8px)} }
 
-        /* ─── FRAME SECTION (separate full section on scroll) ─── */
-        .rd-frame-section {
+        /* ─── MOBILE FRAME SECTION (separate on scroll) ─── */
+        .rd-frame-section-mobile {
           position: relative;
-          min-height: 100vh;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 4rem 5vw;
+          padding: 3rem 5vw;
           box-sizing: border-box;
           overflow: hidden;
         }
 
-        .rd-frame-section-bg {
+        .rd-frame-section-bg-mobile {
           position: absolute;
           inset: 0;
           background: radial-gradient(ellipse 80% 60% at 50% 50%, #0d1a2d 0%, #050d1a 60%, #000 100%);
           z-index: 0;
         }
         @media (prefers-color-scheme: light) {
-          .rd-frame-section-bg {
+          .rd-frame-section-bg-mobile {
             background: radial-gradient(ellipse 80% 60% at 50% 50%, #d6e8ff 0%, #e8f2ff 50%, #f5faff 100%);
           }
         }
-        .light-mode .rd-frame-section-bg {
+        .light-mode .rd-frame-section-bg-mobile {
           background: radial-gradient(ellipse 80% 60% at 50% 50%, #d6e8ff 0%, #e8f2ff 50%, #f5faff 100%) !important;
         }
 
-        .rd-frame-section .rd-frame-glow {
+        .rd-frame-glow-mobile {
           position: absolute;
-          width: 300px;
-          height: 300px;
+          width: 140px;
+          height: 140px;
           background: #0066FF;
           border-radius: 50%;
-          filter: blur(100px);
-          opacity: 0.2;
-          animation: pulse 4s ease-in-out infinite;
+          filter: blur(50px);
+          opacity: 0.25;
           left: 50%;
           top: 50%;
           transform: translate(-50%, -50%);
         }
 
-        .rd-frame-section-wrap {
+        .rd-frame-wrap-mobile {
           position: relative;
           z-index: 2;
           width: 85vw;
-          max-width: 420px;
+          max-width: 340px;
           margin: 0 auto;
           display: flex;
           justify-content: center;
           align-items: center;
         }
 
-        .rd-frame-section-wrap > * {
+        .rd-frame-wrap-mobile > * {
           max-width: 100% !important;
           height: auto !important;
           transform: none !important;
@@ -724,77 +778,69 @@ export default function Home() {
         /* ─── DESKTOP ─── */
         @media (min-width: 900px) {
           .rd-hero { min-height: 100vh; height: auto; padding-bottom: 5rem; }
-          .rd-hero-inner { align-items: flex-start; text-align: left; }
-          .rd-ctas { justify-content: flex-start; }
-          .rd-stats { justify-content: flex-start; }
           .rd-carousel { display: none !important; }
-          
-          /* Desktop: frame section side by side with text in hero */
-          .rd-hero {
-            display: grid;
-            grid-template-columns: 1.1fr 0.9fr;
-            grid-template-rows: 1fr auto;
-            align-items: center;
-          }
-          .rd-frame-section { display: none; }
-          .rd-hero-frame {
-            position: relative;
-            z-index: 10;
-            grid-column: 2;
-            grid-row: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            justify-self: center;
-            height: 75vh;
-            max-height: 620px;
-          }
-          .rd-hero-frame .rd-frame-glow {
-            position: absolute;
-            width: 260px;
-            height: 260px;
-            background: #0066FF;
-            border-radius: 50%;
-            filter: blur(90px);
-            opacity: 0.18;
-            animation: pulse 4s ease-in-out infinite;
-          }
-          .rd-hero-frame .rd-frame-wrap {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            max-width: 460px;
-            margin-top: 0;
-          }
+          /* Hide mobile frame section on desktop */
+          .rd-frame-section-mobile { display: none; }
         }
 
         /* ─── TABLET ─── */
         @media (max-width: 900px) and (min-width: 601px) {
           .rd-hero {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto auto;
             padding: 5rem 6vw 2rem;
             text-align: center;
+            gap: 2rem;
           }
-          .rd-hero-inner { align-items: center; max-width: 100%; }
+          .rd-hero-inner {
+            align-items: center;
+            max-width: 100%;
+            grid-column: 1; grid-row: 1;
+          }
+          .rd-hero-frame-desktop {
+            grid-column: 1; grid-row: 2;
+            height: 50vh;
+            max-height: 400px;
+          }
+          .rd-frame-wrap-desktop { max-width: 360px; margin-top: 0; }
           .rd-ctas { justify-content: center; }
           .rd-stats { justify-content: center; }
           .rd-grid { grid-template-columns: repeat(2, 1fr); }
           .rd-carousel { display: none; }
           .rd-grid { display: grid !important; }
-          .rd-frame-section { min-height: 60vh; }
-          .rd-frame-section-wrap { max-width: 360px; }
+          /* Show mobile frame section on tablet */
+          .rd-frame-section-mobile { display: flex; }
         }
 
         /* ─── MOBILE ─── */
         @media (max-width: 600px) {
           .rd-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             padding: 7.5rem 5vw 3rem;
             min-height: unset;
             height: auto;
+            gap: 0;
+            text-align: center;
+            overflow: visible;
           }
 
+          .rd-hero-bg { position: absolute; }
+
           .rd-hero-inner {
+            order: 0;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
             gap: 0.6rem;
             width: 100%;
+            max-width: 100%;
+            grid-column: unset;
+            grid-row: unset;
           }
 
           .rd-eyebrow {
@@ -827,30 +873,26 @@ export default function Home() {
           .rd-stat-label { font-size: 0.58rem; }
           .rd-stat-divider { height: 1.6rem; }
 
+          /* Hide desktop frame on mobile */
+          .rd-hero-frame-desktop { display: none; }
+
           .rd-cursor { display: none !important; }
+
           .rd-scroll-arrow { display: none; }
           .rd-grid { display: none !important; }
           .rd-carousel { display: block; }
           .rd-featured { padding: 3.5rem 0; }
           .rd-section-head { padding: 0 5vw; }
-
-          /* Mobile: separate frame section */
-          .rd-frame-section {
-            min-height: unset;
-            height: auto;
-            padding: 3rem 5vw;
-          }
-          .rd-frame-section-wrap {
-            width: 85vw;
-            max-width: 340px;
-          }
+          
+          /* Show mobile frame section */
+          .rd-frame-section-mobile { display: flex; }
         }
 
         @media (max-width: 380px) {
           .rd-headline { font-size: 1.85rem; }
           .rd-stat-val { font-size: 1.2rem; }
           .rd-stats { gap: 0.7rem; }
-          .rd-frame-section-wrap { width: 82vw; }
+          .rd-frame-wrap-mobile { width: 82vw; }
         }
       `}</style>
     </div>
