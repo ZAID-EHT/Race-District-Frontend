@@ -139,6 +139,12 @@ function useCursor(enabled) {
 
     if (cursorRef.current) cursorRef.current.style.borderColor = getColor();
 
+    // Destroy any OTHER cursor elements injected by other components (App, Layout, etc.)
+    document.querySelectorAll('[class*="cursor"]:not([data-rd-cursor])').forEach(el => {
+      const s = window.getComputedStyle(el);
+      if (s.position === 'fixed' && s.borderRadius === '50%') el.style.display = 'none';
+    });
+
     window.addEventListener('mousemove', apply, { passive: true });
     return () => {
       window.removeEventListener('mousemove', apply);
@@ -200,6 +206,7 @@ export default function Home() {
       {!isMobile && (
         <div
           ref={cursorRef}
+          data-rd-cursor="true"
           style={{
             width: '32px',
             height: '32px',
