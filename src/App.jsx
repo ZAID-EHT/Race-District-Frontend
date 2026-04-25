@@ -45,13 +45,13 @@ function GlobalCursor() {
     if (isMobile) return;
 
     const getColor = () => {
-      const isLight =
-        document.documentElement.classList.contains('light-mode') ||
-        document.body.classList.contains('light-mode') ||
-        window.matchMedia('(prefers-color-scheme: light)').matches;
-      // Light mode → very dark navy (darker than the blue used in dark mode)
-      // Dark mode  → vivid blue
-      return isLight ? '#020b1c' : '#0066FF';
+      // Header.jsx adds/removes 'light-mode' on document.body — that's the
+      // only source of truth. Never fall back to matchMedia because the OS
+      // preference might differ from what the user picked in the toggle.
+      const isLight = document.body.classList.contains('light-mode');
+      // Light mode → near-black so the ring is visible on white/light bg
+      // Dark mode  → vivid blue so the ring is visible on dark bg
+      return isLight ? '#0a0a0a' : '#0066FF';
     };
 
     const onMove = (e) => {
