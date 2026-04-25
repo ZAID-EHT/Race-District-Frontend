@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { productAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
@@ -108,28 +108,25 @@ function CarouselDotSync() {
   return null;
 }
 
-// Smooth cursor hook with RAF and throttling
+// ── FIXED: single transform-only cursor, no React state, no double-positioning ──
 function useSmoothCursor(enabled) {
-  const [cursor, setCursor] = useState({ x: -999, y: -999 });
+  const elRef = useRef(null);
   const rafRef = useRef(null);
   const posRef = useRef({ x: -999, y: -999 });
-  const lastUpdateRef = useRef(0);
 
   useEffect(() => {
     if (!enabled) return;
 
-    const THROTTLE_MS = 8; // ~120fps max
-
     const move = (e) => {
       posRef.current = { x: e.clientX, y: e.clientY };
-
-      const now = performance.now();
-      if (now - lastUpdateRef.current < THROTTLE_MS) return;
-      lastUpdateRef.current = now;
-
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (rafRef.current) return; // one RAF queued at a time
       rafRef.current = requestAnimationFrame(() => {
-        setCursor(posRef.current);
+        rafRef.current = null;
+        if (elRef.current) {
+          const x = posRef.current.x - 120;
+          const y = posRef.current.y - 120;
+          elRef.current.style.transform = `translate3d(${x}px,${y}px,0)`;
+        }
       });
     };
 
@@ -140,7 +137,7 @@ function useSmoothCursor(enabled) {
     };
   }, [enabled]);
 
-  return cursor;
+  return elRef; // returns a ref to attach to the blob div
 }
 
 export default function Home() {
@@ -157,8 +154,8 @@ export default function Home() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Use smooth cursor hook
-  const cursor = useSmoothCursor(!isMobile);
+  // ── FIXED: cursorRef is now a DOM ref, not coordinates ──
+  const cursorRef = useSmoothCursor(!isMobile);
 
   const typeText = useTypewriter(['Aero Optimized', 'Built for Car Culture', 'Designed for Your Space', 'Simply Fast']);
   const designCount = useCountUp(50);
@@ -186,19 +183,24 @@ export default function Home() {
 
   return (
     <div className="rd-root">
+      {/* ── FIXED: ref attached, no left/top, starts offscreen, moves via transform only ── */}
       {!isMobile && (
-        <div className="rd-cursor-blob" style={{
-          position: 'fixed',
-          left: cursor.x - 120,
-          top: cursor.y - 120,
-          width: 240,
-          height: 240,
-          borderRadius: '50%',
-          pointerEvents: 'none',
-          zIndex: 9999,
-          willChange: 'transform',
-          transform: `translate3d(${cursor.x - 120}px, ${cursor.y - 120}px, 0)`,
-        }}>
+        <div
+          ref={cursorRef}
+          className="rd-cursor-blob"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: 240,
+            height: 240,
+            borderRadius: '50%',
+            pointerEvents: 'none',
+            zIndex: 9999,
+            willChange: 'transform',
+            transform: 'translate3d(-999px,-999px,0)',
+          }}
+        >
           <div className="rd-cursor-dot" />
         </div>
       )}
@@ -303,7 +305,7 @@ export default function Home() {
       <style>{`
         .rd-root { overflow-x: hidden; }
 
-        /* ─── SMOOTH CURSOR BLOB ─── */
+        /* ─── CURSOR BLOB ─── */
         .rd-cursor-blob {
           background: radial-gradient(circle, rgba(0,102,255,0.12) 0%, transparent 65%);
           mix-blend-mode: screen;
@@ -320,7 +322,6 @@ export default function Home() {
           mix-blend-mode: normal !important;
         }
 
-        /* SMOOTH: Solid blue center dot — smaller, hardware accelerated */
         .rd-cursor-dot {
           position: absolute;
           left: 50%;
@@ -334,6 +335,7 @@ export default function Home() {
           will-change: transform;
         }
 
+        /* ─── HERO ─── */
         .rd-hero {
           position: relative;
           min-height: 100vh;
@@ -354,11 +356,8 @@ export default function Home() {
           background: radial-gradient(ellipse 80% 60% at 60% 40%, #0a1628 0%, #050d1a 60%, #000 100%);
           z-index: 0;
         }
-
         @media (prefers-color-scheme: light) {
-          .rd-hero-bg {
-            background: radial-gradient(ellipse 80% 60% at 60% 40%, #c8e0ff 0%, #daeeff 50%, #eef6ff 100%);
-          }
+          .rd-hero-bg { background: radial-gradient(ellipse 80% 60% at 60% 40%, #c8e0ff 0%, #daeeff 50%, #eef6ff 100%); }
         }
         .light-mode .rd-hero-bg {
           background: radial-gradient(ellipse 80% 60% at 60% 40%, #c8e0ff 0%, #daeeff 50%, #eef6ff 100%) !important;
@@ -462,11 +461,7 @@ export default function Home() {
         @media (prefers-color-scheme: light) { .rd-body { color: #1e293b; } }
         .light-mode .rd-body { color: #1e293b !important; }
 
-        .rd-ctas {
-          display: flex;
-          gap: 1rem;
-          flex-wrap: wrap;
-        }
+        .rd-ctas { display: flex; gap: 1rem; flex-wrap: wrap; }
 
         .rd-btn-primary {
           display: inline-flex;
@@ -519,16 +514,10 @@ export default function Home() {
         }
         @media (prefers-color-scheme: light) { .rd-stats { border-top-color: rgba(0,0,0,0.1); } }
         .light-mode .rd-stats { border-top-color: rgba(0,0,0,0.1) !important; }
-
         @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
 
         .rd-stat { display: flex; flex-direction: column; gap: 0.2rem; }
-        .rd-stat-val {
-          font-size: 2rem;
-          font-weight: 700;
-          color: #0066FF;
-          line-height: 1;
-        }
+        .rd-stat-val { font-size: 2rem; font-weight: 700; color: #0066FF; line-height: 1; }
         .rd-stat-label {
           font-size: 0.68rem;
           letter-spacing: 0.18em;
@@ -538,12 +527,7 @@ export default function Home() {
         @media (prefers-color-scheme: light) { .rd-stat-label { color: #64748b; } }
         .light-mode .rd-stat-label { color: #64748b !important; }
 
-        .rd-stat-divider {
-          width: 1px;
-          height: 2.5rem;
-          background: rgba(255,255,255,0.12);
-          flex-shrink: 0;
-        }
+        .rd-stat-divider { width: 1px; height: 2.5rem; background: rgba(255,255,255,0.12); flex-shrink: 0; }
         @media (prefers-color-scheme: light) { .rd-stat-divider { background: rgba(0,0,0,0.1); } }
         .light-mode .rd-stat-divider { background: rgba(0,0,0,0.1) !important; }
 
@@ -591,6 +575,7 @@ export default function Home() {
         }
         @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 55%{transform:translateX(-50%) translateY(-8px)} }
 
+        /* ─── MOBILE FRAME SECTION ─── */
         .rd-frame-section-mobile {
           position: relative;
           display: flex;
@@ -649,6 +634,7 @@ export default function Home() {
           display: block !important;
         }
 
+        /* ─── FEATURED ─── */
         .rd-featured {
           padding: 7rem 6vw;
           background: var(--bg-primary, #050d1a);
@@ -690,6 +676,7 @@ export default function Home() {
           clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));
         }
 
+        /* ─── GRID & CARDS ─── */
         .rd-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -786,6 +773,7 @@ export default function Home() {
         }
         .rd-btn-outline:hover { background: #0066FF; color: #fff; }
 
+        /* ─── CAROUSEL ─── */
         .rd-carousel { display: none; }
         .rd-carousel-track {
           display: flex;
@@ -816,6 +804,7 @@ export default function Home() {
         @media (prefers-color-scheme: light) { .rd-dot { background: rgba(0,0,0,0.15); } }
         .light-mode .rd-dot { background: rgba(0,0,0,0.15) !important; }
 
+        /* ─── BREAKPOINTS ─── */
         @media (min-width: 900px) {
           .rd-hero { min-height: 100vh; height: auto; padding-bottom: 5rem; }
           .rd-carousel { display: none !important; }
@@ -830,16 +819,8 @@ export default function Home() {
             text-align: center;
             gap: 2rem;
           }
-          .rd-hero-inner {
-            align-items: center;
-            max-width: 100%;
-            grid-column: 1; grid-row: 1;
-          }
-          .rd-hero-frame-desktop {
-            grid-column: 1; grid-row: 2;
-            height: 50vh;
-            max-height: 400px;
-          }
+          .rd-hero-inner { align-items: center; max-width: 100%; grid-column: 1; grid-row: 1; }
+          .rd-hero-frame-desktop { grid-column: 1; grid-row: 2; height: 50vh; max-height: 400px; }
           .rd-frame-wrap-desktop { max-width: 360px; margin-top: 0; }
           .rd-ctas { justify-content: center; }
           .rd-stats { justify-content: center; }
@@ -861,9 +842,7 @@ export default function Home() {
             text-align: center;
             overflow: visible;
           }
-
           .rd-hero-bg { position: absolute; }
-
           .rd-hero-inner {
             order: 0;
             position: relative;
@@ -878,41 +857,16 @@ export default function Home() {
             grid-column: unset;
             grid-row: unset;
           }
-
-          .rd-eyebrow {
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            margin-top: 0.5rem;
-          }
-
+          .rd-eyebrow { display: block !important; visibility: visible !important; opacity: 1 !important; margin-top: 0.5rem; }
           .rd-headline { font-size: clamp(2rem, 9vw, 2.8rem); }
-
-          .rd-body {
-            font-size: 0.93rem;
-            line-height: 1.65;
-            max-width: 100%;
-            width: 100%;
-            padding: 0 0.5rem;
-          }
-
+          .rd-body { font-size: 0.93rem; line-height: 1.65; max-width: 100%; width: 100%; padding: 0 0.5rem; }
           .rd-ctas { justify-content: center; flex-wrap: wrap; }
-
-          .rd-stats {
-            justify-content: center;
-            gap: 1rem;
-            flex-wrap: nowrap;
-            width: 100%;
-            padding-top: 1rem;
-          }
+          .rd-stats { justify-content: center; gap: 1rem; flex-wrap: nowrap; width: 100%; padding-top: 1rem; }
           .rd-stat-val { font-size: 1.4rem; }
           .rd-stat-label { font-size: 0.58rem; }
           .rd-stat-divider { height: 1.6rem; }
-
           .rd-hero-frame-desktop { display: none; }
-
           .rd-cursor { display: none !important; }
-
           .rd-scroll-arrow { display: none; }
           .rd-grid { display: none !important; }
           .rd-carousel { display: block; }
