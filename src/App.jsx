@@ -51,7 +51,7 @@ function GlobalCursor() {
       const isLight = document.body.classList.contains('light-mode');
       // Light mode → near-black so the ring is visible on white/light bg
       // Dark mode  → vivid blue so the ring is visible on dark bg
-      return isLight ? '#0a0a0a' : '#0066FF';
+      return isLight ? '#003399' : '#0066FF';
     };
 
     const onMove = (e) => {
