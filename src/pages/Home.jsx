@@ -117,16 +117,16 @@ function useCursor(enabled) {
     if (!enabled) return;
 
     const onMove = (e) => {
+      // Ring snaps instantly
       if (ringRef.current) {
         ringRef.current.style.left = e.clientX + 'px';
         ringRef.current.style.top  = e.clientY + 'px';
       }
-      setTimeout(() => {
-        if (followerRef.current) {
-          followerRef.current.style.left = e.clientX + 'px';
-          followerRef.current.style.top  = e.clientY + 'px';
-        }
-      }, 100);
+      // Follower uses CSS transition (left/top) for smooth lag — no setTimeout needed
+      if (followerRef.current) {
+        followerRef.current.style.left = e.clientX + 'px';
+        followerRef.current.style.top  = e.clientY + 'px';
+      }
     };
 
     const onDown = () => { if (ringRef.current) ringRef.current.style.transform = 'translate(-50%, -50%) scale(0.8)'; };
@@ -321,21 +321,30 @@ export default function Home() {
           z-index: 99999;
           transform: translate(-50%, -50%) scale(1);
           transition: transform 0.1s;
-          mix-blend-mode: difference;
+          /* NO mix-blend-mode — that was causing the double-ring illusion */
         }
 
-        /* ── Follower (lags 100ms, soft blue fill) ── */
+        /* ── Follower (lags 100ms, transparent with blue border) ── */
         .rd-cursor-follower {
           width: 40px;
           height: 40px;
-          background: rgba(0, 102, 255, 0.15);
+          background: transparent;
+          border: 1.5px solid rgba(0, 102, 255, 0.45);
           border-radius: 50%;
           position: fixed;
           pointer-events: none;
           z-index: 99998;
           transform: translate(-50%, -50%);
-          transition: transform 0.3s ease-out;
+          transition: left 0.12s ease-out, top 0.12s ease-out;
         }
+
+        /* Light mode — make follower border more visible on pale bg */
+        @media (prefers-color-scheme: light) {
+          .rd-cursor-ring     { border-color: #0052cc; }
+          .rd-cursor-follower { border-color: rgba(0, 82, 204, 0.65); }
+        }
+        .light-mode .rd-cursor-ring     { border-color: #0052cc !important; }
+        .light-mode .rd-cursor-follower { border-color: rgba(0, 82, 204, 0.65) !important; }
 
         .rd-root { overflow-x: hidden; }
 
