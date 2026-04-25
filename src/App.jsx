@@ -22,17 +22,17 @@ import Toast from './components/common/Toast';
 // Styles
 import './styles/globals.css';
 
-// ─── Global custom cursor ────────────────────────────────────────────────────
-// Renders ONE ring, positioned here in App so it's truly global and can never
-// be duplicated by a child component.
-//
-// Colour logic:
-//   • Dark mode  → #0066FF  (vivid blue — pops on dark bg)
-//   • Light mode → #020b1c  (near-black navy — darker than the dark-theme ring)
+// Two separate cursor divs — dark mode (blue) and light mode (deep rich blue).
+// Only one visible at a time. No colour-detection race conditions.
 function GlobalCursor() {
-  const cursorRef = useRef(null);
+  const darkCursorRef  = useRef(null);
+  const lightCursorRef = useRef(null);
+
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 768 : false
+  );
+  const [isLight, setIsLight] = useState(() =>
+    typeof document !== 'undefined' && document.body.classList.contains('light-mode')
   );
 
   useEffect(() => {
@@ -41,63 +41,58 @@ function GlobalCursor() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  // Header.jsx adds/removes 'light-mode' on document.body — watch that
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsLight(document.body.classList.contains('light-mode'));
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Move both cursors together — display:none hides the inactive one
   useEffect(() => {
     if (isMobile) return;
-
-    const getColor = () => {
-      // Header.jsx adds/removes 'light-mode' on document.body — that's the
-      // only source of truth. Never fall back to matchMedia because the OS
-      // preference might differ from what the user picked in the toggle.
-      const isLight = document.body.classList.contains('light-mode');
-      // Light mode → near-black so the ring is visible on white/light bg
-      // Dark mode  → vivid blue so the ring is visible on dark bg
-      return isLight ? '#003399' : '#0066FF';
-    };
-
     const onMove = (e) => {
-      if (!cursorRef.current) return;
-      cursorRef.current.style.left = e.clientX + 'px';
-      cursorRef.current.style.top  = e.clientY + 'px';
-      cursorRef.current.style.borderColor = getColor();
+      const x = e.clientX + 'px';
+      const y = e.clientY + 'px';
+      if (darkCursorRef.current)  { darkCursorRef.current.style.left  = x; darkCursorRef.current.style.top  = y; }
+      if (lightCursorRef.current) { lightCursorRef.current.style.left = x; lightCursorRef.current.style.top = y; }
     };
-
-    // React to theme-class changes so the colour switches instantly
-    const observer = new MutationObserver(() => {
-      if (cursorRef.current) cursorRef.current.style.borderColor = getColor();
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    observer.observe(document.body,            { attributes: true, attributeFilter: ['class'] });
-
-    // Set initial colour
-    if (cursorRef.current) cursorRef.current.style.borderColor = getColor();
-
     window.addEventListener('mousemove', onMove, { passive: true });
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      observer.disconnect();
-    };
+    return () => window.removeEventListener('mousemove', onMove);
   }, [isMobile]);
 
   if (isMobile) return null;
 
+  const base = {
+    width: '32px',
+    height: '32px',
+    background: 'transparent',
+    borderRadius: '50%',
+    position: 'fixed',
+    pointerEvents: 'none',
+    zIndex: 99999,
+    transform: 'translate(-50%, -50%)',
+    left: '-999px',
+    top: '-999px',
+  };
+
   return (
-    <div
-      ref={cursorRef}
-      data-rd-cursor="true"
-      style={{
-        width: '32px',
-        height: '32px',
-        background: 'transparent',
-        border: '2.5px solid #0066FF', // overwritten immediately by effect
-        borderRadius: '50%',
-        position: 'fixed',
-        pointerEvents: 'none',
-        zIndex: 99999,
-        transform: 'translate(-50%, -50%)',
-        left: '-999px',
-        top: '-999px',
-      }}
-    />
+    <>
+      {/* DARK MODE cursor — vivid blue */}
+      <div
+        ref={darkCursorRef}
+        data-rd-cursor="dark"
+        style={{ ...base, border: '2.5px solid #0066FF', display: isLight ? 'none' : 'block' }}
+      />
+      {/* LIGHT MODE cursor — deep rich dark blue */}
+      <div
+        ref={lightCursorRef}
+        data-rd-cursor="light"
+        style={{ ...base, border: '2.5px solid #003399', display: isLight ? 'block' : 'none' }}
+      />
+    </>
   );
 }
 
@@ -107,7 +102,6 @@ function App() {
       <CartProvider>
         <Router>
           <div className="min-h-screen bg-rd-dark text-white font-inter overflow-x-hidden">
-            {/* Single global cursor — rendered once, above everything */}
             <GlobalCursor />
             <Header />
             <main>
