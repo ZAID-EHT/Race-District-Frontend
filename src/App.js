@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
@@ -8,17 +8,33 @@ import Header from './components/common/Header';
 import Footer from './components/common/Footer';
 import Home from './pages/Home';
 import Products from './pages/Products';
+import ProductDetail from './pages/ProductDetail'; // ← make sure this page exists
 import About from './pages/About';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import Account from './pages/Account';
 import TrackOrder from './pages/TrackOrder';
-import ComingSoon from './pages/ComingSoon';           // ← NEW
+import ComingSoon from './pages/ComingSoon';
 import AdminDashboard from './pages/admin/Dashboard';
 import { AdminOrders, AdminProducts } from './pages/admin/AdminPages';
 import AdminCustomers from './pages/admin/Customers';
 
 import './styles/globals.css';
+
+// ─── Cart UI Context ───────────────────────────────────────────────────────────
+// Keeps cartOpen state in a context so Header and any page can access it
+// without prop-drilling through StoreLayout/cloneElement.
+const CartUIContext = createContext({ cartOpen: false, setCartOpen: () => {} });
+export const useCartUI = () => useContext(CartUIContext);
+
+function CartUIProvider({ children }) {
+  const [cartOpen, setCartOpen] = useState(false);
+  return (
+    <CartUIContext.Provider value={{ cartOpen, setCartOpen }}>
+      {children}
+    </CartUIContext.Provider>
+  );
+}
 
 /* Custom cursor */
 function CustomCursor() {
@@ -81,14 +97,16 @@ function AdminRoute({ children }) {
   return children;
 }
 
-/* Store layout with cart drawer */
+// ─── StoreLayout ──────────────────────────────────────────────────────────────
+// No longer owns cartOpen state — reads it from CartUIContext instead.
+// No more cloneElement hack needed.
 function StoreLayout({ children }) {
-  const [cartOpen, setCartOpen] = useState(false);
+  const { cartOpen, setCartOpen } = useCartUI();
 
   return (
     <>
       <Header cartOpen={cartOpen} setCartOpen={setCartOpen} />
-      {React.cloneElement(children, { cartOpen, setCartOpen })}
+      {children}
       <Footer />
     </>
   );
@@ -101,10 +119,15 @@ function AppRoutes() {
       <Route path="/" element={<StoreLayout><Home /></StoreLayout>} />
       <Route path="/shop" element={<StoreLayout><Products /></StoreLayout>} />
       <Route path="/products" element={<StoreLayout><Products /></StoreLayout>} />
+
+      {/* ↓ FIX: product detail routes so clicking a product doesn't 404 */}
+      <Route path="/products/:id" element={<StoreLayout><ProductDetail /></StoreLayout>} />
+      <Route path="/shop/:id" element={<StoreLayout><ProductDetail /></StoreLayout>} />
+
       <Route path="/about" element={<StoreLayout><About /></StoreLayout>} />
       <Route path="/login" element={<Login />} />
       <Route path="/track-order" element={<StoreLayout><TrackOrder /></StoreLayout>} />
-      <Route path="/coming-soon" element={<StoreLayout><ComingSoon /></StoreLayout>} />  {/* ← NEW */}
+      <Route path="/coming-soon" element={<StoreLayout><ComingSoon /></StoreLayout>} />
       <Route path="/account" element={<ProtectedRoute><StoreLayout><Account /></StoreLayout></ProtectedRoute>} />
       <Route path="/account/:tab" element={<ProtectedRoute><StoreLayout><Account /></StoreLayout></ProtectedRoute>} />
       <Route path="/checkout" element={<ProtectedRoute><StoreLayout><Checkout /></StoreLayout></ProtectedRoute>} />
@@ -136,11 +159,14 @@ export default function App() {
     <AuthProvider>
       <CartProvider>
         <ToastProvider>
-          {!loaded && <LoadingScreen onDone={() => setLoaded(true)} />}
-          <CustomCursor />
-          <Router>
-            <AppRoutes />
-          </Router>
+          {/* ↓ FIX: CartUIProvider wraps the Router so Header & pages share cartOpen */}
+          <CartUIProvider>
+            {!loaded && <LoadingScreen onDone={() => setLoaded(true)} />}
+            <CustomCursor />
+            <Router>
+              <AppRoutes />
+            </Router>
+          </CartUIProvider>
         </ToastProvider>
       </CartProvider>
     </AuthProvider>
