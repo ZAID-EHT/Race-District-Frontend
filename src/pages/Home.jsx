@@ -253,14 +253,9 @@ export default function Home() {
 
       <style>{`
 
-        /* ── Hide system cursor everywhere — dark AND light mode ── */
+        /* ── Default cursor for all elements ── */
         *, *::before, *::after {
-          cursor: none !important;
-        }
-
-        /* ── Hide system cursor — covers EVERY possible selector ── */
-        html, body, *, *::before, *::after {
-          cursor: none !important;
+          cursor: auto;
         }
 
         .rd-root { overflow-x: hidden; }
@@ -411,7 +406,7 @@ export default function Home() {
           font-weight: 700;
           letter-spacing: 0.12em;
           border: none;
-          cursor: none;
+          cursor: pointer;
           clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
           transition: background 0.2s, transform 0.15s;
         }
@@ -429,7 +424,7 @@ export default function Home() {
           font-weight: 700;
           letter-spacing: 0.12em;
           border: 1.5px solid rgba(255,255,255,0.3);
-          cursor: none;
+          cursor: pointer;
           transition: border-color 0.2s, color 0.2s;
         }
         .rd-btn-secondary:hover { border-color: #0066FF; color: #0066FF; }
@@ -688,7 +683,7 @@ export default function Home() {
           font-size: 0.72rem;
           font-weight: 700;
           letter-spacing: 0.1em;
-          cursor: none;
+          cursor: pointer;
           transition: all 0.25s;
         }
         .rd-card-btn:hover { background: #0066FF; color: #fff; border-color: #0066FF; }
@@ -703,7 +698,7 @@ export default function Home() {
           font-size: 0.8rem;
           font-weight: 700;
           letter-spacing: 0.12em;
-          cursor: none;
+          cursor: pointer;
           transition: background 0.2s, color 0.2s;
           clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
         }
