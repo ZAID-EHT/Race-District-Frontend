@@ -53,6 +53,8 @@ export default function TrackOrder() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [retried, setRetried] = useState(false);
+
   const handleTrack = useCallback(async (num) => {
     const n = (num || orderNum || '').trim();
     if (!n) { setError('Please enter an order number.'); return; }
@@ -69,7 +71,12 @@ export default function TrackOrder() {
       if (msg.toLowerCase().includes('not found') || e?.status === 404) {
         setError('Order not found. Please check the order number (e.g. RD-2026-00001).');
       } else {
-        setError('Could not reach the server. Please try again shortly.');
+        setError('The server is waking up — please click TRACK again to retry.');
+        // Auto-retry once after 4s (for Railway cold starts from email links)
+        if (!retried) {
+          setRetried(true);
+          setTimeout(() => handleTrack(num || orderNum), 4000);
+        }
       }
     } finally {
       setLoading(false);

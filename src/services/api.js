@@ -104,7 +104,7 @@ export const orderAPI = {
   getMyOrders:  (params)      => api.get('/orders/my-orders', { params }),
   getById:      (id)          => api.get(`/orders/${id}`),
   cancelOrder:  (id)          => api.put(`/orders/${id}/cancel`),
-  track:        (orderNumber) => api.get(`/orders/track/${orderNumber}`),
+  track:        (orderNumber) => api.get(`/orders/track/${orderNumber}`, { timeout: 30000 }),
 };
 
 export const adminAPI = {
