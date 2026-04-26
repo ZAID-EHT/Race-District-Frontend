@@ -120,7 +120,7 @@ function AppRoutes() {
       <Route path="/coming-soon" element={<StoreLayout><ComingSoon /></StoreLayout>} />
       <Route path="/account" element={<ProtectedRoute><StoreLayout><Account /></StoreLayout></ProtectedRoute>} />
       <Route path="/account/:tab" element={<ProtectedRoute><StoreLayout><Account /></StoreLayout></ProtectedRoute>} />
-      <Route path="/checkout" element={<ProtectedRoute><StoreLayout><Checkout /></StoreLayout></ProtectedRoute>} />
+      <Route path="/checkout" element={<StoreLayout><Checkout /></StoreLayout>} />
 
       {/* Admin pages */}
       <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

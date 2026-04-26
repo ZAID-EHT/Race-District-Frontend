@@ -6,8 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 
 const SHIPPING_OPTIONS = [
-  { id: 'colombo', name: 'Colombo Delivery', cost: 350, estimatedDays: 1, description: 'Within Colombo district' },
-  { id: 'outstation', name: 'Island-Wide Delivery', cost: 850, estimatedDays: 3, description: 'Outside Colombo' },
+  { id: 'island_wide', name: 'Island-Wide Shipping', cost: 600, estimatedDays: 3, description: 'Delivery anywhere in Sri Lanka' },
 ];
 
 const BANK_DETAILS = {
@@ -416,32 +415,16 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                 </div>
               </div>
 
-              {/* Delivery Options — proper radio inputs so selection always registers */}
+              {/* Delivery — single option, shown as info not a radio */}
               <div>
-                <label style={{ ...labelStyle, marginBottom: '0.75rem' }}>Delivery Option *</label>
-                {SHIPPING_OPTIONS.map(opt => {
-                  const isSelected = shippingOption.id === opt.id;
-                  return (
-                    <label key={opt.id} htmlFor={`shipping-${opt.id}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', marginBottom: '0.5rem', border: `2px solid ${isSelected ? '#0066FF' : 'rgba(255,255,255,0.1)'}`, borderRadius: '0.375rem', cursor: 'pointer', background: isSelected ? 'rgba(0,102,255,0.1)' : 'transparent', transition: 'all 0.2s' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <input
-                          type="radio"
-                          id={`shipping-${opt.id}`}
-                          name="shippingOption"
-                          value={opt.id}
-                          checked={isSelected}
-                          onChange={() => setShippingOption(opt)}
-                          style={{ accentColor: '#0066FF', width: '1rem', height: '1rem', flexShrink: 0, cursor: 'pointer' }}
-                        />
-                        <div>
-                          <div style={{ fontWeight: 700, color: 'white', fontSize: '0.875rem' }}>{opt.name}</div>
-                          <div style={{ color: '#9CA3AF', fontSize: '0.75rem' }}>{opt.description} · Est. {getEstimatedDate(opt.estimatedDays)}</div>
-                        </div>
-                      </div>
-                      <span style={{ color: '#0066FF', fontWeight: 700, fontSize: '0.875rem', flexShrink: 0 }}>LKR {opt.cost.toLocaleString()}</span>
-                    </label>
-                  );
-                })}
+                <label style={{ ...labelStyle, marginBottom: '0.75rem' }}>Delivery</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', border: '2px solid #0066FF', borderRadius: '0.375rem', background: 'rgba(0,102,255,0.1)' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, color: 'white', fontSize: '0.875rem' }}>{SHIPPING_OPTIONS[0].name}</div>
+                    <div style={{ color: '#9CA3AF', fontSize: '0.75rem' }}>{SHIPPING_OPTIONS[0].description} · Est. {getEstimatedDate(SHIPPING_OPTIONS[0].estimatedDays)}</div>
+                  </div>
+                  <span style={{ color: '#0066FF', fontWeight: 700, fontSize: '0.875rem', flexShrink: 0 }}>LKR {SHIPPING_OPTIONS[0].cost.toLocaleString()}</span>
+                </div>
               </div>
 
               {/* Payment Methods */}
