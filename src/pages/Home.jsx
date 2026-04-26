@@ -62,7 +62,7 @@ export function ProductCard({ product, featured = false }) {
   const imageUrl = product.images?.[0]?.url || null;
 
   return (
-    <Link to={`/product/${product._id || product.id}`} className="rd-product-card" style={{ textDecoration: 'none', display: 'block' }}
+    <Link to={`/products/${product._id || product.id}`} className="rd-product-card" style={{ textDecoration: 'none', display: 'block' }}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       <div className="rd-card-img">
         {imageUrl

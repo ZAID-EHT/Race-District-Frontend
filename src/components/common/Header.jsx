@@ -326,7 +326,7 @@ export default function Header({ cartOpen, setCartOpen }) {
 
               {/* Cart Button — desktop only, opens drawer */}
               <button
-                onClick={() => setCartOpen(true)}
+                onClick={() => window.dispatchEvent(new Event('rd:open-cart'))}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '0.4rem',
                   padding: '0.5rem 1rem',

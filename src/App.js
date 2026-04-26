@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
@@ -6,9 +6,10 @@ import { ToastProvider } from './contexts/ToastContext';
 
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
+import CartDrawer from './components/cart/CartDrawer';   // ← import CartDrawer here
 import Home from './pages/Home';
 import Products from './pages/Products';
-import ProductDetail from './pages/ProductDetail'; // ← make sure this page exists
+import ProductDetail from './pages/ProductDetail';       // ← import ProductDetail
 import About from './pages/About';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
@@ -20,21 +21,6 @@ import { AdminOrders, AdminProducts } from './pages/admin/AdminPages';
 import AdminCustomers from './pages/admin/Customers';
 
 import './styles/globals.css';
-
-// ─── Cart UI Context ───────────────────────────────────────────────────────────
-// Keeps cartOpen state in a context so Header and any page can access it
-// without prop-drilling through StoreLayout/cloneElement.
-const CartUIContext = createContext({ cartOpen: false, setCartOpen: () => {} });
-export const useCartUI = () => useContext(CartUIContext);
-
-function CartUIProvider({ children }) {
-  const [cartOpen, setCartOpen] = useState(false);
-  return (
-    <CartUIContext.Provider value={{ cartOpen, setCartOpen }}>
-      {children}
-    </CartUIContext.Provider>
-  );
-}
 
 /* Custom cursor */
 function CustomCursor() {
@@ -97,15 +83,20 @@ function AdminRoute({ children }) {
   return children;
 }
 
-// ─── StoreLayout ──────────────────────────────────────────────────────────────
-// No longer owns cartOpen state — reads it from CartUIContext instead.
-// No more cloneElement hack needed.
+/*
+  StoreLayout — owns cartOpen state and renders CartDrawer alongside Header.
+  NO more cloneElement. CartDrawer also listens to the 'rd:open-cart' window
+  event, so both the desktop button (Header) and mobile button fire the same
+  event and the drawer always opens correctly.
+*/
 function StoreLayout({ children }) {
-  const { cartOpen, setCartOpen } = useCartUI();
+  const [cartOpen, setCartOpen] = useState(false);
 
   return (
     <>
       <Header cartOpen={cartOpen} setCartOpen={setCartOpen} />
+      {/* CartDrawer lives here — same level as Header, shares state */}
+      <CartDrawer cartOpen={cartOpen} setCartOpen={setCartOpen} />
       {children}
       <Footer />
     </>
@@ -120,9 +111,8 @@ function AppRoutes() {
       <Route path="/shop" element={<StoreLayout><Products /></StoreLayout>} />
       <Route path="/products" element={<StoreLayout><Products /></StoreLayout>} />
 
-      {/* ↓ FIX: product detail routes so clicking a product doesn't 404 */}
+      {/* ✅ FIX: Product detail route — matches /products/:id links in ProductCard & Home */}
       <Route path="/products/:id" element={<StoreLayout><ProductDetail /></StoreLayout>} />
-      <Route path="/shop/:id" element={<StoreLayout><ProductDetail /></StoreLayout>} />
 
       <Route path="/about" element={<StoreLayout><About /></StoreLayout>} />
       <Route path="/login" element={<Login />} />
@@ -159,14 +149,11 @@ export default function App() {
     <AuthProvider>
       <CartProvider>
         <ToastProvider>
-          {/* ↓ FIX: CartUIProvider wraps the Router so Header & pages share cartOpen */}
-          <CartUIProvider>
-            {!loaded && <LoadingScreen onDone={() => setLoaded(true)} />}
-            <CustomCursor />
-            <Router>
-              <AppRoutes />
-            </Router>
-          </CartUIProvider>
+          {!loaded && <LoadingScreen onDone={() => setLoaded(true)} />}
+          <CustomCursor />
+          <Router>
+            <AppRoutes />
+          </Router>
         </ToastProvider>
       </CartProvider>
     </AuthProvider>

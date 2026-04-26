@@ -19,7 +19,7 @@ const ProductCard = ({ product }) => {
       : null;
 
   return (
-    <Link to={`/product/${product._id || product.id}`} className="product-card bg-rd-card block">
+    <Link to={`/products/${product._id || product.id}`} className="product-card bg-rd-card block">
       <div className="bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center overflow-hidden transition-transform duration-500"
         style={{ height: '20rem' }}
       >
