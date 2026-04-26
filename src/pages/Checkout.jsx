@@ -137,8 +137,8 @@ export default function Checkout({ cartOpen, setCartOpen }) {
 
   const inputStyle = {
     width: '100%', padding: '0.75rem',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'var(--co-input-bg, rgba(255,255,255,0.05))',
+    border: '1px solid var(--co-input-border, rgba(255,255,255,0.1))',
     borderRadius: '0.375rem', color: 'var(--text-primary)',
     boxSizing: 'border-box',
   };
@@ -166,18 +166,18 @@ export default function Checkout({ cartOpen, setCartOpen }) {
           <h2 className="font-orbitron" style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
             {isBankTransfer ? 'AWAITING PAYMENT' : 'ORDER CONFIRMED!'}
           </h2>
-          <p style={{ color: '#9CA3AF', marginBottom: '0.5rem' }}>Order <span style={{ color: '#0066FF', fontWeight: 700 }}>{placedOrder.orderNumber}</span></p>
-          <p style={{ color: '#9CA3AF', marginBottom: '2rem' }}>
+          <p className="co-muted" style={{ marginBottom: '0.5rem' }}>Order <span style={{ color: '#0066FF', fontWeight: 700 }}>{placedOrder.orderNumber}</span></p>
+          <p className="co-muted" style={{ marginBottom: '2rem' }}>
             {isCOD && "Pay when your order arrives. We'll get it ready right away!"}
             {isBankTransfer && 'Please complete your bank transfer recipt to confirm your order.'}
           </p>
 
-          <div style={{ background: 'rgba(0,102,255,0.07)', border: '1px solid rgba(0,102,255,0.2)', borderRadius: '0.5rem', padding: '0.875rem 1.25rem', marginBottom: '1.5rem', fontSize: '0.85rem', color: '#9CA3AF', textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+          <div className="co-muted" style={{ background: 'rgba(0,102,255,0.07)', border: '1px solid rgba(0,102,255,0.2)', borderRadius: '0.5rem', padding: '0.875rem 1.25rem', marginBottom: '1.5rem', fontSize: '0.85rem', textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
             <span style={{ fontSize: '1rem', marginTop: '0.05rem' }}>📧</span>
             <span>
               {isBankTransfer
-                ? <>Your invoice along with the <strong style={{ color: 'white' }}>bank transfer details</strong> have been sent to <strong style={{ color: 'white' }}>{checkoutForm.email}</strong>.</>
-                : <>Your invoice has been sent to <strong style={{ color: 'white' }}>{checkoutForm.email}</strong>.</>
+                ? <>Your invoice along with the <strong className="co-strong">bank transfer details</strong> have been sent to <strong className="co-strong">{checkoutForm.email}</strong>.</>
+                : <>Your invoice has been sent to <strong className="co-strong">{checkoutForm.email}</strong>.</>
               }
             </span>
           </div>
@@ -188,16 +188,16 @@ export default function Checkout({ cartOpen, setCartOpen }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginBottom: '1.25rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#60A5FA', background: 'rgba(0,102,255,0.15)', border: '1px solid rgba(0,102,255,0.3)', borderRadius: '0.25rem', padding: '0.18rem 0.5rem', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>NAME</span>
-                  <span style={{ color: 'white', fontWeight: 600, fontSize: '0.95rem' }}>{BANK_DETAILS.name}</span>
+                  <span className="co-strong" style={{ fontWeight: 600, fontSize: '0.95rem' }}>{BANK_DETAILS.name}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#60A5FA', background: 'rgba(0,102,255,0.15)', border: '1px solid rgba(0,102,255,0.3)', borderRadius: '0.25rem', padding: '0.18rem 0.5rem', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>BANK</span>
-                  <span style={{ color: 'white', fontWeight: 600, fontSize: '0.95rem' }}>{BANK_DETAILS.bank}</span>
+                  <span className="co-strong" style={{ fontWeight: 600, fontSize: '0.95rem' }}>{BANK_DETAILS.bank}</span>
                 </div>
                 <div className="bank-copy-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,102,255,0.12)', border: '1px solid rgba(0,102,255,0.35)', padding: '0.75rem 1rem', borderRadius: '0.375rem', marginTop: '0.25rem' }}>
                   <div>
                     <div style={{ color: '#9CA3AF', fontSize: '0.68rem', marginBottom: '0.2rem', letterSpacing: '0.07em' }}>ACCOUNT NUMBER</div>
-                    <div style={{ color: 'white', fontWeight: 700, fontSize: '1.15rem', letterSpacing: '0.08em' }}>{BANK_DETAILS.accountNumber}</div>
+                    <div className="co-strong" style={{ fontWeight: 700, fontSize: '1.15rem', letterSpacing: '0.08em' }}>{BANK_DETAILS.accountNumber}</div>
                   </div>
                   <button onClick={() => copyToClipboard(BANK_DETAILS.accountNumber, 'acc')} style={{ padding: '0.45rem 1rem', background: copiedField === 'acc' ? '#059669' : '#0066FF', border: 'none', color: 'white', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem', transition: 'all 0.3s', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     {copiedField === 'acc' ? 'Copied! ✓' : 'Copy'}
@@ -206,15 +206,15 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                 <div className="bank-copy-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,102,255,0.12)', border: '1px solid rgba(0,102,255,0.35)', padding: '0.75rem 1rem', borderRadius: '0.375rem' }}>
                   <div>
                     <div style={{ color: '#9CA3AF', fontSize: '0.68rem', marginBottom: '0.2rem', letterSpacing: '0.07em' }}>PHONE / WHATSAPP</div>
-                    <div style={{ color: 'white', fontWeight: 700, fontSize: '1.15rem', letterSpacing: '0.08em' }}>{BANK_DETAILS.phone}</div>
+                    <div className="co-strong" style={{ fontWeight: 700, fontSize: '1.15rem', letterSpacing: '0.08em' }}>{BANK_DETAILS.phone}</div>
                   </div>
                   <button onClick={() => copyToClipboard(BANK_DETAILS.phone, 'phone')} style={{ padding: '0.45rem 1rem', background: copiedField === 'phone' ? '#059669' : '#0066FF', border: 'none', color: 'white', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem', transition: 'all 0.3s', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     {copiedField === 'phone' ? 'Copied! ✓' : 'Copy'}
                   </button>
                 </div>
               </div>
-              <p style={{ color: '#9CA3AF', fontSize: '0.875rem' }}>
-                After transferring, send your receipt with order number <strong style={{ color: 'white' }}>{placedOrder.orderNumber}</strong> to confirm.
+              <p className="co-muted" style={{ fontSize: '0.875rem' }}>
+                After transferring, send your receipt with order number <strong className="co-strong">{placedOrder.orderNumber}</strong> to confirm.
               </p>
             </div>
           )}
@@ -253,8 +253,8 @@ export default function Checkout({ cartOpen, setCartOpen }) {
           <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '1.5rem' }}>
             <h4 className="font-orbitron" style={{ color: '#0066FF', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '1rem' }}>DELIVERY ADDRESS</h4>
             <p style={{ color: 'var(--text-primary)' }}>{checkoutForm.firstName} {checkoutForm.lastName}</p>
-            <p style={{ color: '#9CA3AF', fontSize: '0.875rem' }}>{checkoutForm.address}, {checkoutForm.city}, {checkoutForm.zip}</p>
-            <p style={{ color: '#9CA3AF', fontSize: '0.875rem' }}>{checkoutForm.country} · {checkoutForm.phone}</p>
+            <p className="co-muted" style={{ fontSize: '0.875rem' }}>{checkoutForm.address}, {checkoutForm.city}, {checkoutForm.zip}</p>
+            <p className="co-muted" style={{ fontSize: '0.875rem' }}>{checkoutForm.country} · {checkoutForm.phone}</p>
           </div>
 
           <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '1.5rem' }}>
@@ -272,7 +272,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9CA3AF', fontSize: '0.875rem' }}>
                 <span>Shipping ({shippingOption.name})</span><span>LKR {shipping.toLocaleString()}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.125rem', color: 'white', paddingTop: '0.5rem', borderTop: '1px solid #1F2937' }}>
+              <div className="co-total-row" style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.125rem', paddingTop: '0.5rem', borderTop: '1px solid var(--co-divider, #1F2937)' }}>
                 <span>Total</span><span style={{ color: '#0066FF' }}>LKR {total.toLocaleString()}</span>
               </div>
             </div>
@@ -281,7 +281,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
           <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '1.5rem' }}>
             <h4 className="font-orbitron" style={{ color: '#0066FF', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>PAYMENT & DELIVERY</h4>
             <p style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>
-              Payment: <strong style={{ color: 'white' }}>{paymentMethod === 'cod' ? 'Cash on Delivery' : 'Bank Transfer'}</strong>
+              Payment: <strong className="co-strong">{paymentMethod === 'cod' ? 'Cash on Delivery' : 'Bank Transfer'}</strong>
             </p>
             <p style={{ color: 'var(--text-primary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
               Est. Delivery: <strong style={{ color: '#0066FF' }}>{getEstimatedDate(shippingOption.estimatedDays)}</strong>
@@ -289,7 +289,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
           </div>
 
           <div className="recap-actions" style={{ display: 'flex', gap: '1rem' }}>
-            <button onClick={() => setStep('details')} style={{ flex: 1, padding: '1rem', background: 'transparent', color: 'var(--text-secondary)', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: 700 }}>
+            <button onClick={() => setStep('details')} style={{ flex: 1, padding: '1rem', background: 'transparent', color: 'var(--text-secondary)', border: '2px solid var(--co-input-border, rgba(255,255,255,0.1))', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: 700 }}>
               ← BACK
             </button>
             <button onClick={handlePlaceOrder} disabled={orderLoading} style={{ flex: 2, padding: '1rem', background: '#2563EB', color: 'white', fontWeight: 700, fontSize: '1rem', border: '2px solid #2563EB', cursor: orderLoading ? 'not-allowed' : 'pointer', borderRadius: '0.375rem', opacity: orderLoading ? 0.6 : 1, transition: 'all 0.3s' }}>
@@ -305,6 +305,38 @@ export default function Checkout({ cartOpen, setCartOpen }) {
   return (
     <div className="page-fade" style={{ paddingTop: '5rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
       <style>{`
+        /* ── Light mode CSS variable overrides ── */
+        .light-mode {
+          --co-input-bg: rgba(0,0,0,0.04);
+          --co-input-border: rgba(0,0,0,0.15);
+          --co-divider: #e5e7eb;
+        }
+        @media (prefers-color-scheme: light) {
+          :root {
+            --co-input-bg: rgba(0,0,0,0.04);
+            --co-input-border: rgba(0,0,0,0.15);
+            --co-divider: #e5e7eb;
+          }
+        }
+
+        /* co-strong = primary text (white dark / black light) */
+        .co-strong { color: var(--text-primary, #fff); }
+        .light-mode .co-strong { color: #0f172a !important; }
+        @media (prefers-color-scheme: light) { .co-strong { color: #0f172a; } }
+
+        /* co-muted = secondary text (grey dark / dark-grey light) */
+        .co-muted { color: #9CA3AF; }
+        .light-mode .co-muted { color: #374151 !important; }
+        @media (prefers-color-scheme: light) { .co-muted { color: #374151; } }
+
+        /* co-total-row = white dark / near-black light */
+        .co-total-row { color: var(--text-primary, #fff); }
+        .light-mode .co-total-row { color: #0f172a !important; }
+        @media (prefers-color-scheme: light) { .co-total-row { color: #0f172a; } }
+
+        /* Cart item card background */
+        .light-mode .co-item-card { background: rgba(0,0,0,0.04) !important; border-color: #d1d5db !important; }
+
         @media (max-width: 768px) {
           .checkout-main-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
           .checkout-wrap { padding: 2rem 1rem !important; }
@@ -336,13 +368,13 @@ export default function Checkout({ cartOpen, setCartOpen }) {
               {cart.length === 0
                 ? <p style={{ color: '#6B7280', textAlign: 'center', padding: '2rem 0' }}>Your garage is empty.</p>
                 : cart.map((item, i) => (
-                  <div key={item.cartId || i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(31,41,55,0.5)', padding: '0.75rem 1rem', borderRadius: '0.375rem', border: '1px solid #374151' }}>
+                  <div key={item.cartId || i} className="co-item-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(31,41,55,0.5)', padding: '0.75rem 1rem', borderRadius: '0.375rem', border: '1px solid #374151' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <div style={{ fontSize: '1.5rem' }}>{item.emoji || '📦'}</div>
                       <div>
-                        <div style={{ fontWeight: 700, color: 'white', fontSize: '0.875rem' }}>{item.name}</div>
-                        <div style={{ color: '#9CA3AF', fontSize: '0.75rem' }}>LKR {item.price.toLocaleString()} × {item.quantity}</div>
-                        {item.size && <div style={{ color: '#9CA3AF', fontSize: '0.75rem' }}>Size: {item.size}</div>}
+                        <div className="co-strong" style={{ fontWeight: 700, fontSize: '0.875rem' }}>{item.name}</div>
+                        <div className="co-muted" style={{ fontSize: '0.75rem' }}>LKR {item.price.toLocaleString()} × {item.quantity}</div>
+                        {item.size && <div className="co-muted" style={{ fontSize: '0.75rem' }}>Size: {item.size}</div>}
                       </div>
                     </div>
                     <span style={{ color: '#0066FF', fontWeight: 700, fontSize: '0.875rem' }}>LKR {(item.price * item.quantity).toLocaleString()}</span>
@@ -359,7 +391,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9CA3AF', fontSize: '0.875rem' }}>
                 <span>Shipping</span><span>LKR {shipping.toLocaleString()}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.25rem', color: 'white', paddingTop: '0.5rem', borderTop: '1px solid #1F2937' }}>
+              <div className="co-total-row" style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.25rem', paddingTop: '0.5rem', borderTop: '1px solid var(--co-divider, #1F2937)' }}>
                 <span>Total</span><span style={{ color: '#0066FF' }}>LKR {total.toLocaleString()}</span>
               </div>
             </div>
@@ -370,7 +402,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
             <h3 className="font-orbitron" style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>PILOT INFORMATION</h3>
 
             {!isAuthenticated && (
-              <div style={{ background: 'rgba(0,102,255,0.1)', border: '1px solid rgba(0,102,255,0.3)', borderRadius: '0.375rem', padding: '0.75rem 1rem', marginBottom: '1.5rem', fontSize: '0.875rem', color: '#9CA3AF' }}>
+              <div className="co-muted" style={{ background: 'rgba(0,102,255,0.1)', border: '1px solid rgba(0,102,255,0.3)', borderRadius: '0.375rem', padding: '0.75rem 1rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
                 Checking out as guest.{' '}
                 <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: '#0066FF', cursor: 'pointer', fontWeight: 700, padding: 0 }}>Log in</button>
                 {' '}to save your order history.
@@ -415,13 +447,13 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                 </div>
               </div>
 
-              {/* Delivery — single option, shown as info not a radio */}
+              {/* Delivery — single option shown as info */}
               <div>
                 <label style={{ ...labelStyle, marginBottom: '0.75rem' }}>Delivery</label>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', border: '2px solid #0066FF', borderRadius: '0.375rem', background: 'rgba(0,102,255,0.1)' }}>
                   <div>
-                    <div style={{ fontWeight: 700, color: 'white', fontSize: '0.875rem' }}>{SHIPPING_OPTIONS[0].name}</div>
-                    <div style={{ color: '#9CA3AF', fontSize: '0.75rem' }}>{SHIPPING_OPTIONS[0].description} · Est. {getEstimatedDate(SHIPPING_OPTIONS[0].estimatedDays)}</div>
+                    <div className="co-strong" style={{ fontWeight: 700, fontSize: '0.875rem' }}>{SHIPPING_OPTIONS[0].name}</div>
+                    <div className="co-muted" style={{ fontSize: '0.75rem' }}>{SHIPPING_OPTIONS[0].description} · Est. {getEstimatedDate(SHIPPING_OPTIONS[0].estimatedDays)}</div>
                   </div>
                   <span style={{ color: '#0066FF', fontWeight: 700, fontSize: '0.875rem', flexShrink: 0 }}>LKR {SHIPPING_OPTIONS[0].cost.toLocaleString()}</span>
                 </div>
@@ -436,8 +468,8 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                       {paymentMethod === 'cod' && <div style={{ width: '0.6rem', height: '0.6rem', borderRadius: '50%', background: '#0066FF' }} />}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, color: 'white', fontSize: '0.9rem' }}>💵 Cash on Delivery</div>
-                      <div style={{ color: '#9CA3AF', fontSize: '0.75rem' }}>Pay when your order arrives — order auto-confirmed</div>
+                      <div className="co-strong" style={{ fontWeight: 700, fontSize: '0.9rem' }}>💵 Cash on Delivery</div>
+                      <div className="co-muted" style={{ fontSize: '0.75rem' }}>Pay when your order arrives — order auto-confirmed</div>
                     </div>
                   </div>
 
@@ -446,8 +478,8 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                       {paymentMethod === 'bank_transfer' && <div style={{ width: '0.6rem', height: '0.6rem', borderRadius: '50%', background: '#0066FF' }} />}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, color: 'white', fontSize: '0.9rem' }}>🏦 Bank Transfer</div>
-                      <div style={{ color: '#9CA3AF', fontSize: '0.75rem' }}>Transfer recipt to 0750158254 — order set to pending until receipt confirmed</div>
+                      <div className="co-strong" style={{ fontWeight: 700, fontSize: '0.9rem' }}>🏦 Bank Transfer</div>
+                      <div className="co-muted" style={{ fontSize: '0.75rem' }}>Transfer recipt to 0750158254 — order set to pending until receipt confirmed</div>
                     </div>
                   </div>
 

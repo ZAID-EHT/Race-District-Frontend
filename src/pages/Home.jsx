@@ -50,6 +50,7 @@ export function ProductCard({ product, featured = false }) {
   const { addToast } = useToast();
   const [added, setAdded] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const handleAdd = (e) => {
     e.preventDefault(); e.stopPropagation();
@@ -59,15 +60,22 @@ export function ProductCard({ product, featured = false }) {
     setTimeout(() => setAdded(false), 1200);
   };
 
-  const imageUrl = product.images?.[0]?.url || null;
+  const imageUrl = !imgError ? (product.images?.[0]?.url || null) : null;
 
   return (
     <Link to={`/products/${product._id || product.id}`} className="rd-product-card" style={{ textDecoration: 'none', display: 'block' }}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       <div className="rd-card-img">
         {imageUrl
-          ? <img src={imageUrl} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hovered ? 'scale(1.07)' : 'scale(1)', transition: 'transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)' }} onError={e => { e.target.style.display = 'none'; }} />
-          : <div style={{ fontSize: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>{product.emoji || '📦'}</div>
+          ? <img src={imageUrl} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hovered ? 'scale(1.07)' : 'scale(1)', transition: 'transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)' }} onError={() => setImgError(true)} />
+          : (
+            <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'linear-gradient(135deg, #1a2035, #0d1929)' }}>
+              <svg width="48" height="48" fill="none" stroke="rgba(0,102,255,0.4)" strokeWidth="1.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.1em' }}>NO IMAGE</span>
+            </div>
+          )
         }
         <div className="rd-card-overlay" style={{ opacity: hovered ? 1 : 0 }} />
       </div>
