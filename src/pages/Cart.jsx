@@ -99,15 +99,15 @@ const Cart = () => {
             <div className="space-y-3 mb-6">
               <div className="flex justify-between text-gray-400">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>LKR {subtotal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-gray-400">
                 <span>Shipping</span>
-                <span>{shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}</span>
+                <span>{shipping === 0 ? 'FREE' : `LKR ${shipping.toLocaleString()}`}</span>
               </div>
               <div className="flex justify-between text-gray-400">
                 <span>Tax (8%)</span>
-                <span>${tax.toFixed(2)}</span>
+                <span>LKR {tax.toLocaleString()}</span>
               </div>
               {shipping === 0 && (
                 <div className="text-green-500 text-sm">
@@ -120,7 +120,7 @@ const Cart = () => {
             <div className="border-t border-gray-800 pt-4 mb-6">
               <div className="flex justify-between text-xl font-bold">
                 <span>Total</span>
-                <span className="text-rd-blue">${total.toFixed(2)}</span>
+                <span className="text-rd-blue">LKR {total.toLocaleString()}</span>
               </div>
             </div>
 

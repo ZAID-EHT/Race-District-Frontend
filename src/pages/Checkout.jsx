@@ -370,7 +370,12 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                 : cart.map((item, i) => (
                   <div key={item.cartId || i} className="co-item-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(31,41,55,0.5)', padding: '0.75rem 1rem', borderRadius: '0.375rem', border: '1px solid #374151' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div style={{ fontSize: '1.5rem' }}>{item.emoji || '📦'}</div>
+                      <div style={{ width: '3rem', height: '3rem', borderRadius: '0.375rem', overflow: 'hidden', flexShrink: 0, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {item.image
+                        ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <span style={{ fontSize: '1.5rem' }}>📦</span>
+                      }
+                    </div>
                       <div>
                         <div className="co-strong" style={{ fontWeight: 700, fontSize: '0.875rem' }}>{item.name}</div>
                         <div className="co-muted" style={{ fontSize: '0.75rem' }}>LKR {item.price.toLocaleString()} × {item.quantity}</div>
