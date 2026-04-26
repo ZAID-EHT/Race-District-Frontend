@@ -68,12 +68,12 @@ const ProductDetail = () => {
   /* ── Shared Add-to-Cart Row (quantity + button) ── */
   const AddToCartRow = () => (
     <div style={{ display: 'flex', gap: '0.75rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', overflow: 'hidden' }}>
-        <button onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{ width: '2.75rem', height: '3.25rem', background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: '1.25rem' }}
-          onMouseEnter={e => e.currentTarget.style.color = 'white'} onMouseLeave={e => e.currentTarget.style.color = '#9CA3AF'}>−</button>
-        <span style={{ width: '2.5rem', textAlign: 'center', fontWeight: 700, color: 'white' }}>{quantity}</span>
-        <button onClick={() => setQuantity(quantity + 1)} style={{ width: '2.75rem', height: '3.25rem', background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: '1.25rem' }}
-          onMouseEnter={e => e.currentTarget.style.color = 'white'} onMouseLeave={e => e.currentTarget.style.color = '#9CA3AF'}>+</button>
+      <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(128,128,128,0.1)', border: '1px solid rgba(128,128,128,0.2)', borderRadius: '0.5rem', overflow: 'hidden' }}>
+        <button onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{ width: '2.75rem', height: '3.25rem', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '1.25rem' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#0066FF'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-primary)'}>−</button>
+        <span style={{ width: '2.5rem', textAlign: 'center', fontWeight: 700, color: 'var(--text-primary)' }}>{quantity}</span>
+        <button onClick={() => setQuantity(quantity + 1)} style={{ width: '2.75rem', height: '3.25rem', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '1.25rem' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#0066FF'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-primary)'}>+</button>
       </div>
       <button onClick={handleAddToCart} style={{
         flex: 1, padding: '0 1.5rem', height: '3.25rem',
@@ -161,11 +161,6 @@ const ProductDetail = () => {
                   <span style={{ color: '#374151' }}>{'★'.repeat(5 - Math.floor(product.rating || 0))}</span>
                 </div>
                 <span style={{ color: '#6B7280', fontSize: '0.875rem' }}>({product.reviews || 0} reviews)</span>
-                {product.sales > 0 && (
-                  <span style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#10B981', padding: '0.2rem 0.6rem', borderRadius: '2rem', fontSize: '0.75rem', fontWeight: 600 }}>
-                    {product.sales} sold
-                  </span>
-                )}
               </div>
             </div>
 
@@ -183,14 +178,14 @@ const ProductDetail = () => {
 
             <div style={{ height: '1px', background: 'linear-gradient(to right, rgba(59,130,246,0.3), transparent)' }} />
 
-            <p style={{ color: '#9CA3AF', lineHeight: 1.8, fontSize: '0.9375rem' }}>{description}</p>
+            <p className="pd-desc" style={{ lineHeight: 1.8, fontSize: '0.9375rem' }}>{description}</p>
 
             {features.length > 0 && (
               <div>
-                <h3 style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#6B7280', marginBottom: '0.75rem' }}>Key Features</h3>
+                <h3 className="pd-label" style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>Key Features</h3>
                 <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {features.map((feature, i) => (
-                    <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', color: '#D1D5DB', fontSize: '0.875rem' }}>
+                    <li key={i} className="pd-feature-item" style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', fontSize: '0.875rem' }}>
                       <span style={{ color: '#0066FF', marginTop: '0.15rem', flexShrink: 0 }}>
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
@@ -205,7 +200,7 @@ const ProductDetail = () => {
 
             {product.sizes && product.sizes.length > 0 && (
               <div>
-                <h3 style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#6B7280', marginBottom: '0.75rem' }}>
+                <h3 className="pd-label" style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
                   Size — <span style={{ color: '#0066FF' }}>{selectedSize}</span>
                 </h3>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -227,51 +222,12 @@ const ProductDetail = () => {
               <AddToCartRow />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.75rem' }}>
-              {[
-                { icon: '🚚', label: 'Free Shipping', sub: 'Over LKR 15,000' },
-                { icon: '↩️', label: '30-Day Returns', sub: 'Hassle free' },
-                { icon: '🛡️', label: '2-Year Warranty', sub: 'Guaranteed' }
-              ].map(({ icon, label, sub }) => (
-                <div key={label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '0.75rem', padding: '0.875rem 0.75rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{icon}</div>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>{label}</div>
-                  <div style={{ fontSize: '0.65rem', color: '#6B7280' }}>{sub}</div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
 
-        {/* Reviews */}
-        <div style={{ marginTop: '5rem', paddingTop: '4rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <h2 className="font-orbitron" style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '2rem', color: 'var(--text-primary)' }}>
-            PILOT <span style={{ color: '#0066FF' }}>REVIEWS</span>
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-            {[
-              { name: 'Max R.', stars: 5, text: 'Incredible quality — performs exactly as described, perfect for track days and casual wear.' },
-              { name: 'Lewis H.', stars: 5, text: 'Fast shipping. The build quality is outstanding. Highly recommend Race District.' }
-            ].map(({ name, stars, text }) => (
-              <div key={name} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '1rem', padding: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                  <div style={{ width: '2.75rem', height: '2.75rem', borderRadius: '50%', background: 'rgba(0,102,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0066FF', fontWeight: 800, fontSize: '1rem' }}>
-                    {name[0]}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, color: 'white', fontSize: '0.875rem' }}>{name}</div>
-                    <div style={{ color: '#F59E0B', fontSize: '0.75rem' }}>{'★'.repeat(stars)}</div>
-                  </div>
-                  <span style={{ marginLeft: 'auto', fontSize: '0.7rem', color: '#4B5563', background: 'rgba(255,255,255,0.04)', padding: '0.2rem 0.5rem', borderRadius: '2rem' }}>Verified</span>
-                </div>
-                <p style={{ color: '#9CA3AF', fontSize: '0.875rem', lineHeight: 1.7 }}>{text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
-      {/* Mobile-only ATC styles */}
+      {/* Mobile-only ATC styles + light mode text fixes */}
       <style>{`
         @media (max-width: 900px) {
           .mobile-atc-row { display: block !important; }
@@ -280,6 +236,23 @@ const ProductDetail = () => {
         @media (min-width: 901px) {
           .mobile-atc-row { display: none !important; }
           .desktop-atc-row { display: block !important; }
+        }
+
+        /* Dark mode defaults */
+        .pd-desc { color: #9CA3AF; }
+        .pd-label { color: #6B7280; }
+        .pd-feature-item { color: #D1D5DB; }
+
+        /* Light mode overrides — text must be dark and readable */
+        .light-mode .pd-desc { color: #1e293b !important; }
+        .light-mode .pd-label { color: #374151 !important; }
+        .light-mode .pd-feature-item { color: #1e293b !important; }
+        .light-mode .pd-reviews-text { color: #374151 !important; }
+
+        @media (prefers-color-scheme: light) {
+          .pd-desc { color: #1e293b; }
+          .pd-label { color: #374151; }
+          .pd-feature-item { color: #1e293b; }
         }
       `}</style>
     </div>
