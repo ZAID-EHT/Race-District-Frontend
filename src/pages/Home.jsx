@@ -156,7 +156,7 @@ export default function Home() {
         <div className="rd-hero-bg" />
 
         <div className="rd-hero-inner">
-          <p className="rd-eyebrow">Premium Motorsport Gear — Designed for Your Space</p>
+          <p className="rd-eyebrow">Designed for Your Space</p>
 
           <h1 className="rd-headline font-orbitron">
             BUILT FOR<br/>
@@ -171,7 +171,7 @@ export default function Home() {
           </div>
 
           <p className="rd-body">
-            Race District is where automotive passion meets interior design. We create premium frames inspired by performance, culture, and iconic engineering — built to elevate your space.
+            Race District is where automotive passion meets interior design. We create premium frames inspired by performance, culture, and iconic engineering built to elevate your space.
           </p>
 
           <div className="rd-ctas">
