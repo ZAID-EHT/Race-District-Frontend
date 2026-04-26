@@ -281,7 +281,7 @@ export default function CartDrawer({ cartOpen, setCartOpen }) {
                         color: '#4d9fff', letterSpacing: '0.02em',
                         fontVariantNumeric: 'tabular-nums',
                       }}>
-                        ${(item.price * item.quantity).toFixed(2)}
+                        LKR {(item.price * item.quantity).toLocaleString()}
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
@@ -360,7 +360,7 @@ export default function CartDrawer({ cartOpen, setCartOpen }) {
                 fontSize: '1.3rem', fontWeight: 800, color: 'white',
                 letterSpacing: '0.02em', fontVariantNumeric: 'tabular-nums',
               }}>
-                ${getTotal().toFixed(2)}
+                LKR {getTotal().toLocaleString()}
               </span>
             </div>
 
@@ -388,7 +388,7 @@ export default function CartDrawer({ cartOpen, setCartOpen }) {
             >
               <span>Checkout</span>
               <span style={{ opacity: 0.6 }}>—</span>
-              <span>${getTotal().toFixed(2)}</span>
+              <span>LKR {getTotal().toLocaleString()}</span>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
