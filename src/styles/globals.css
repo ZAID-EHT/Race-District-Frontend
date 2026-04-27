@@ -4,7 +4,7 @@
   --blue-glow: #00CCFF;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; cursor: none !important; }
 
 /* ── DARK MODE (default) ── */
 body.dark-mode, body:not(.light-mode) {
