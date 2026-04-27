@@ -1,165 +1,143 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { CartProvider } from './contexts/CartContext';
-import { ToastProvider } from './contexts/ToastContext';
+import React, { useEffect, useRef, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './hooks/useAuth';
+import { CartProvider } from './hooks/useCart';
 
+// Pages
+import Home from './pages/Home';
+import Shop from './pages/Shop';
+import ProductDetail from './pages/ProductDetail';
+import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+import Account from './pages/Account';
+import Login from './pages/Login';
+import TrackOrder from './pages/TrackOrder';
+import About from './pages/About';
+
+// Components
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
-import CartDrawer from './components/cart/CartDrawer';
-import Home from './pages/Home';
-import Products from './pages/Products';
-import ProductDetail from './pages/ProductDetail';
-import About from './pages/About';
-import Checkout from './pages/Checkout';
-import Login from './pages/Login';
-import Account from './pages/Account';
-import TrackOrder from './pages/TrackOrder';
-import ComingSoon from './pages/ComingSoon';
-import AdminDashboard from './pages/admin/Dashboard';
-import { AdminOrders, AdminProducts } from './pages/admin/AdminPages';
-import AdminCustomers from './pages/admin/Customers';
-import ScrollToTop from './components/common/ScrollToTop';
+import Toast from './components/common/Toast';
+import ScrollToTop from './components/common/ScrollToTop'; // ← ADD THIS
 
+// Styles
 import './styles/globals.css';
 
-/* Custom cursor */
-function CustomCursor() {
-  const cursorRef = React.useRef(null);
-  const followerRef = React.useRef(null);
+function GlobalCursor() {
+  const darkCursorRef  = useRef(null);
+  const lightCursorRef = useRef(null);
+
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth <= 768 : false
+  );
+  const [isLight, setIsLight] = useState(() =>
+    typeof document !== 'undefined' && document.body.classList.contains('light-mode')
+  );
 
   useEffect(() => {
-    const move = (e) => {
-      if (cursorRef.current) {
-        cursorRef.current.style.left = e.clientX + 'px';
-        cursorRef.current.style.top = e.clientY + 'px';
-      }
-      if (followerRef.current) {
-        setTimeout(() => {
-          if (followerRef.current) {
-            followerRef.current.style.left = e.clientX + 'px';
-            followerRef.current.style.top = e.clientY + 'px';
-          }
-        }, 100);
-      }
-    };
-    document.addEventListener('mousemove', move);
-    return () => document.removeEventListener('mousemove', move);
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', onResize, { passive: true });
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  return (
-    <>
-      <div ref={cursorRef} className="rd-cursor" style={{ display: 'none' }} id="rd-cursor" />
-      <div ref={followerRef} className="rd-cursor-follower" style={{ display: 'none' }} id="rd-cursor-follower" />
-    </>
-  );
-}
-
-/* Loading screen */
-function LoadingScreen({ onDone }) {
   useEffect(() => {
-    const t = setTimeout(() => onDone(), 1500);
-    return () => clearTimeout(t);
-  }, [onDone]);
-
-  return (
-    <div className="loader" id="loader">
-      <div className="font-orbitron loader-text">RACE DISTRICT</div>
-    </div>
-  );
-}
-
-/* Guards */
-function ProtectedRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth();
-  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}><div className="spinner" /></div>;
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
-}
-
-function AdminRoute({ children }) {
-  const { isAdmin, loading, isAuthenticated } = useAuth();
-  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}><div className="spinner" /></div>;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (!isAdmin) return <Navigate to="/" replace />;
-  return children;
-}
-
-/*
-  StoreLayout — owns cartOpen state and renders CartDrawer alongside Header.
-  NO more cloneElement. CartDrawer also listens to the 'rd:open-cart' window
-  event, so both the desktop button (Header) and mobile button fire the same
-  event and the drawer always opens correctly.
-*/
-function StoreLayout({ children }) {
-  const [cartOpen, setCartOpen] = useState(false);
-
-  return (
-    <>
-      <Header cartOpen={cartOpen} setCartOpen={setCartOpen} />
-      {/* CartDrawer lives here — same level as Header, shares state */}
-      <CartDrawer cartOpen={cartOpen} setCartOpen={setCartOpen} />
-      {children}
-      <Footer />
-    </>
-  );
-}
-
-function AppRoutes() {
-  return (
-    <>
-      <ScrollToTop />
-      <Routes>
-        {/* Store pages */}
-        <Route path="/" element={<StoreLayout><Home /></StoreLayout>} />
-        <Route path="/shop" element={<StoreLayout><Products /></StoreLayout>} />
-        <Route path="/products" element={<StoreLayout><Products /></StoreLayout>} />
-
-        {/* ✅ FIX: Product detail route — matches /products/:id links in ProductCard & Home */}
-        <Route path="/products/:id" element={<StoreLayout><ProductDetail /></StoreLayout>} />
-
-        <Route path="/about" element={<StoreLayout><About /></StoreLayout>} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/track-order" element={<StoreLayout><TrackOrder /></StoreLayout>} />
-        <Route path="/coming-soon" element={<StoreLayout><ComingSoon /></StoreLayout>} />
-        <Route path="/account" element={<ProtectedRoute><StoreLayout><Account /></StoreLayout></ProtectedRoute>} />
-        <Route path="/account/:tab" element={<ProtectedRoute><StoreLayout><Account /></StoreLayout></ProtectedRoute>} />
-        <Route path="/checkout" element={<StoreLayout><Checkout /></StoreLayout>} />
-
-        {/* Admin pages */}
-        <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-        <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
-        <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
-        <Route path="/admin/users" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
-
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </>
-  );
-}
-
-export default function App() {
-  const [loaded, setLoaded] = useState(false);
+    const observer = new MutationObserver(() => {
+      setIsLight(document.body.classList.contains('light-mode'));
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
-    const cursor = document.getElementById('rd-cursor');
-    const follower = document.getElementById('rd-cursor-follower');
-    if (window.innerWidth >= 768) {
-      if (cursor) cursor.style.display = 'block';
-      if (follower) follower.style.display = 'block';
-    }
-  }, [loaded]);
+    if (isMobile) return;
+    const onMove = (e) => {
+      const x = e.clientX + 'px';
+      const y = e.clientY + 'px';
+      if (darkCursorRef.current)  { darkCursorRef.current.style.left  = x; darkCursorRef.current.style.top  = y; }
+      if (lightCursorRef.current) { lightCursorRef.current.style.left = x; lightCursorRef.current.style.top = y; }
+    };
+    window.addEventListener('mousemove', onMove, { passive: true });
+    return () => window.removeEventListener('mousemove', onMove);
+  }, [isMobile]);
 
+  if (isMobile) return null;
+
+  const base = {
+    width: '32px',
+    height: '32px',
+    background: 'transparent',
+    borderRadius: '50%',
+    position: 'fixed',
+    pointerEvents: 'none',
+    zIndex: 99999,
+    transform: 'translate(-50%, -50%)',
+    left: '-999px',
+    top: '-999px',
+  };
+
+  // Small centre-dot for precision (same ref-less trick — purely decorative)
+  const dot = {
+    width: '5px',
+    height: '5px',
+    borderRadius: '50%',
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+  };
+
+  return (
+    <>
+      {/* Dark-mode cursor — bright blue ring */}
+      <div
+        ref={darkCursorRef}
+        data-rd-cursor="dark"
+        style={{ ...base, border: '2.5px solid #0066FF', display: isLight ? 'none' : 'block' }}
+      >
+        <span style={{ ...dot, background: '#0066FF' }} />
+      </div>
+
+      {/* Light-mode cursor — deep navy ring, clearly visible on white/grey */}
+      <div
+        ref={lightCursorRef}
+        data-rd-cursor="light"
+        style={{ ...base, border: '3px solid #0d2a8a', display: isLight ? 'block' : 'none' }}
+      >
+        <span style={{ ...dot, background: '#0d2a8a' }} />
+      </div>
+    </>
+  );
+}
+
+function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <ToastProvider>
-          {!loaded && <LoadingScreen onDone={() => setLoaded(true)} />}
-          <CustomCursor />
-          <Router>
-            <AppRoutes />
-          </Router>
-        </ToastProvider>
+        <Router>
+          <ScrollToTop /> {/* ← ADD THIS */}
+          <div className="min-h-screen bg-rd-dark text-white font-inter overflow-x-hidden">
+            <GlobalCursor />
+            <Header />
+            <main>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/shop" element={<Shop />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/account" element={<Account />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/track-order" element={<TrackOrder />} />
+                <Route path="/about" element={<About />} />
+              </Routes>
+            </main>
+            <Footer />
+            <Toast />
+          </div>
+        </Router>
       </CartProvider>
     </AuthProvider>
   );
 }
+
+export default App;
