@@ -183,8 +183,14 @@ body.dark-mode .rd-cursor-follower, body:not(.light-mode) .rd-cursor-follower {
   width: 40px; height: 40px; background: rgba(0,102,255,0.1); border-radius: 50%;
   position: fixed; pointer-events: none; z-index: 9998; transition: transform 0.3s ease-out;
 }
-body.light-mode .rd-cursor,
-body.light-mode .rd-cursor-follower { display: none !important; }
+body.light-mode .rd-cursor {
+  width: 20px; height: 20px; border: 2px solid #0d2a8a; border-radius: 50%;
+  position: fixed; pointer-events: none; z-index: 9999; transition: transform 0.1s;
+}
+body.light-mode .rd-cursor-follower {
+  width: 40px; height: 40px; background: rgba(13, 42, 138, 0.1); border-radius: 50%;
+  position: fixed; pointer-events: none; z-index: 9998; transition: transform 0.3s ease-out;
+}
 
 /* ── CART BADGE ── */
 .cart-badge {
