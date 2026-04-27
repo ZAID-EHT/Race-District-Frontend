@@ -18,12 +18,11 @@ import About from './pages/About';
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
 import Toast from './components/common/Toast';
+import ScrollToTop from './components/common/ScrollToTop'; // ← ADD THIS
 
 // Styles
 import './styles/globals.css';
 
-// Two separate cursor divs — dark mode (blue) and light mode (deep rich blue).
-// Only one visible at a time. No colour-detection race conditions.
 function GlobalCursor() {
   const darkCursorRef  = useRef(null);
   const lightCursorRef = useRef(null);
@@ -41,7 +40,6 @@ function GlobalCursor() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Header.jsx adds/removes 'light-mode' on document.body — watch that
   useEffect(() => {
     const observer = new MutationObserver(() => {
       setIsLight(document.body.classList.contains('light-mode'));
@@ -50,7 +48,6 @@ function GlobalCursor() {
     return () => observer.disconnect();
   }, []);
 
-  // Move both cursors together — display:none hides the inactive one
   useEffect(() => {
     if (isMobile) return;
     const onMove = (e) => {
@@ -80,13 +77,11 @@ function GlobalCursor() {
 
   return (
     <>
-      {/* DARK MODE cursor — vivid blue */}
       <div
         ref={darkCursorRef}
         data-rd-cursor="dark"
         style={{ ...base, border: '2.5px solid #0066FF', display: isLight ? 'none' : 'block' }}
       />
-      {/* LIGHT MODE cursor — deep rich dark blue */}
       <div
         ref={lightCursorRef}
         data-rd-cursor="light"
@@ -101,6 +96,7 @@ function App() {
     <AuthProvider>
       <CartProvider>
         <Router>
+          <ScrollToTop /> {/* ← ADD THIS */}
           <div className="min-h-screen bg-rd-dark text-white font-inter overflow-x-hidden">
             <GlobalCursor />
             <Header />
