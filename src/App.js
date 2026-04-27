@@ -106,32 +106,34 @@ function StoreLayout({ children }) {
 
 function AppRoutes() {
   return (
-    <Routes>
+    <>
       <ScrollToTop />
-      {/* Store pages */}
-      <Route path="/" element={<StoreLayout><Home /></StoreLayout>} />
-      <Route path="/shop" element={<StoreLayout><Products /></StoreLayout>} />
-      <Route path="/products" element={<StoreLayout><Products /></StoreLayout>} />
+      <Routes>
+        {/* Store pages */}
+        <Route path="/" element={<StoreLayout><Home /></StoreLayout>} />
+        <Route path="/shop" element={<StoreLayout><Products /></StoreLayout>} />
+        <Route path="/products" element={<StoreLayout><Products /></StoreLayout>} />
 
-      {/* ✅ FIX: Product detail route — matches /products/:id links in ProductCard & Home */}
-      <Route path="/products/:id" element={<StoreLayout><ProductDetail /></StoreLayout>} />
+        {/* ✅ FIX: Product detail route — matches /products/:id links in ProductCard & Home */}
+        <Route path="/products/:id" element={<StoreLayout><ProductDetail /></StoreLayout>} />
 
-      <Route path="/about" element={<StoreLayout><About /></StoreLayout>} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/track-order" element={<StoreLayout><TrackOrder /></StoreLayout>} />
-      <Route path="/coming-soon" element={<StoreLayout><ComingSoon /></StoreLayout>} />
-      <Route path="/account" element={<ProtectedRoute><StoreLayout><Account /></StoreLayout></ProtectedRoute>} />
-      <Route path="/account/:tab" element={<ProtectedRoute><StoreLayout><Account /></StoreLayout></ProtectedRoute>} />
-      <Route path="/checkout" element={<StoreLayout><Checkout /></StoreLayout>} />
+        <Route path="/about" element={<StoreLayout><About /></StoreLayout>} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/track-order" element={<StoreLayout><TrackOrder /></StoreLayout>} />
+        <Route path="/coming-soon" element={<StoreLayout><ComingSoon /></StoreLayout>} />
+        <Route path="/account" element={<ProtectedRoute><StoreLayout><Account /></StoreLayout></ProtectedRoute>} />
+        <Route path="/account/:tab" element={<ProtectedRoute><StoreLayout><Account /></StoreLayout></ProtectedRoute>} />
+        <Route path="/checkout" element={<StoreLayout><Checkout /></StoreLayout>} />
 
-      {/* Admin pages */}
-      <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-      <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
-      <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
-      <Route path="/admin/users" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
+        {/* Admin pages */}
+        <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+        <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
+        <Route path="/admin/users" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
 
