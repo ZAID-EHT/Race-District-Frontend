@@ -6,10 +6,10 @@ import { ToastProvider } from './contexts/ToastContext';
 
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
-import CartDrawer from './components/cart/CartDrawer';   // ← import CartDrawer here
+import CartDrawer from './components/cart/CartDrawer';
 import Home from './pages/Home';
 import Products from './pages/Products';
-import ProductDetail from './pages/ProductDetail';       // ← import ProductDetail
+import ProductDetail from './pages/ProductDetail';
 import About from './pages/About';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
@@ -19,6 +19,7 @@ import ComingSoon from './pages/ComingSoon';
 import AdminDashboard from './pages/admin/Dashboard';
 import { AdminOrders, AdminProducts } from './pages/admin/AdminPages';
 import AdminCustomers from './pages/admin/Customers';
+import ScrollToTop from './components/common/ScrollToTop';
 
 import './styles/globals.css';
 
@@ -106,6 +107,7 @@ function StoreLayout({ children }) {
 function AppRoutes() {
   return (
     <Routes>
+      <ScrollToTop />
       {/* Store pages */}
       <Route path="/" element={<StoreLayout><Home /></StoreLayout>} />
       <Route path="/shop" element={<StoreLayout><Products /></StoreLayout>} />
