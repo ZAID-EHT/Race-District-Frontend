@@ -23,7 +23,7 @@ function ProductCard({ product }) {
 
   return (
     <Link
-      to={`/product/${product._id || product.id}`}
+      to={`/products/${product._id || product.id}`}
       className="product-card"
       style={{ background: 'var(--bg-card)', display: 'block', textDecoration: 'none' }}
     >
