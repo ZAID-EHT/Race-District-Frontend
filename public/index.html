@@ -7,7 +7,8 @@
   <link rel="icon" type="image/png" href="./RD.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <!-- Fix #3: Added crossorigin="anonymous" to Google Fonts stylesheet -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet" crossorigin="anonymous">
   <title>RACE DISTRICT | Built for Speed. Designed for Life.</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,7 +32,8 @@
   /></noscript>
   <!-- End Meta Pixel Code -->
   <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-L2GF4JM4D7"></script>
+  <!-- Fix #5: Added crossorigin="anonymous" to Google Tag Manager script -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-L2GF4JM4D7" crossorigin="anonymous"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
