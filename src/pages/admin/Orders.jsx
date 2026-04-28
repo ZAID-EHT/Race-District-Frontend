@@ -112,10 +112,21 @@ export default function AdminOrders() {
   const handleBulk = async (bulkStatus) => {
     if (!selected.length || !window.confirm(`Update ${selected.length} orders to "${bulkStatus}"?`)) return;
     try {
-      await adminAPI.bulkUpdateOrders({ orderIds: selected, status: bulkStatus });
+      try {
+        await adminAPI.bulkUpdateOrders({ orderIds: selected, status: bulkStatus });
+      } catch (bulkErr) {
+        const is404 = bulkErr?.response?.status === 404 || bulkErr?.message?.toLowerCase().includes('not found');
+        if (is404) {
+          await Promise.all(selected.map(id => adminAPI.updateOrderStatus(id, { status: bulkStatus })));
+        } else {
+          throw bulkErr;
+        }
+      }
       setSelected([]); fetchOrders();
       showToast(`${selected.length} orders updated to "${bulkStatus}"`);
-    } catch (e) { showToast(e.message || 'Failed', 'error'); }
+    } catch (e) {
+      showToast(e?.response?.data?.message || e.message || 'Failed to update orders', 'error');
+    }
   };
 
   const handleResendInvoice = async (orderId, e) => {
