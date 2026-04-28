@@ -10,6 +10,13 @@ const STATUS_BADGE = {
   delivered:'badge-delivered', cancelled:'badge-cancelled', returned:'badge-returned', packed:'badge-processing'
 };
 
+const formatLKR = (amount) => {
+  if (amount == null) return 'LKR 0.00';
+  const num = typeof amount === 'string' ? parseFloat(amount.replace(/[^0-9.-]/g, '')) : Number(amount);
+  if (isNaN(num)) return 'LKR 0.00';
+  return `LKR ${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
 const MOBILE_STYLES = `
 select.form-select,
 select.form-input {
@@ -241,7 +248,7 @@ export default function AdminOrders() {
                         {order.items?.slice(0,2).map((it,i) => <div key={i}>{it.emoji} {it.name} ×{it.quantity}</div>)}
                         {order.items?.length > 2 && <div style={{ color: 'var(--rd-muted)' }}>+{order.items.length - 2} more</div>}
                       </td>
-                      <td><span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.95rem' }}>LKR {order.total?.toFixed(2)}</span></td>
+                      <td><span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.95rem' }}>{formatLKR(order.total)}</span></td>
                       <td><span className={`badge ${STATUS_BADGE[order.status] || 'badge-pending'}`}>{order.status?.replace(/_/g,' ')}</span></td>
                       <td className="col-hide" style={{ color: 'var(--rd-muted)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{new Date(order.createdAt).toLocaleDateString()}</td>
                       <td className="col-actions">
@@ -301,11 +308,11 @@ export default function AdminOrders() {
                             </div>
                             <div>
                               <div style={{ color: 'var(--rd-muted)', fontSize: '0.7rem', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>FINANCIALS</div>
-                              <div>Subtotal: LKR {order.subtotal?.toFixed(2)}</div>
-                              <div>Shipping: LKR {order.shippingCost?.toFixed(2)}</div>
-                              <div>Tax: LKR {order.tax?.toFixed(2)}</div>
-                              {order.discount > 0 && <div style={{ color: 'var(--rd-green)' }}>Discount: -LKR {order.discount?.toFixed(2)}</div>}
-                              <div style={{ fontWeight: 700, color: 'var(--rd-green)', marginTop: '0.35rem' }}>Total: LKR {order.total?.toFixed(2)}</div>
+                              <div>Subtotal: {formatLKR(order.subtotal)}</div>
+                              <div>Shipping: {formatLKR(order.shippingCost)}</div>
+                              <div>Tax: {formatLKR(order.tax)}</div>
+                              {order.discount > 0 && <div style={{ color: 'var(--rd-green)' }}>Discount: -{formatLKR(order.discount)}</div>}
+                              <div style={{ fontWeight: 700, color: 'var(--rd-green)', marginTop: '0.35rem' }}>Total: {formatLKR(order.total)}</div>
                             </div>
                           </div>
                           {order.adminNote && (
