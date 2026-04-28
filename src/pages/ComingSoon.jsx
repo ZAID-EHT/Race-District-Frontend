@@ -138,71 +138,79 @@ export default function ComingSoon() {
         .cs-race-font { font-family: 'Hyperspace Race', 'Arial Black', Impact, sans-serif; font-style: italic; }
         @keyframes csPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.35); } }
 
-        /* ── Mobile: HUGE text, ZERO gap between DISTRICT and ECO ── */
         @media (max-width: 768px) {
-          .cs-page { 
-            padding-top: 4rem !important; 
-            justify-content: center !important; 
-          }
-          .cs-page > div:nth-child(3) {
-            padding: 1rem 1rem !important;
-            align-items: center !important;
-            text-align: center !important;
-            max-width: 100% !important;
-          }
-          
-          /* HUGE text on mobile */
-          .cs-page > div:nth-child(3) > .cs-race-font:nth-child(1) { 
-            font-size: clamp(6rem, 28vw, 11rem) !important; 
-            line-height: 0.8 !important;
-            margin-bottom: -0.3rem !important;
-          }
-          .cs-page > div:nth-child(3) > .cs-race-font:nth-child(2) { 
-            font-size: clamp(4.5rem, 20vw, 8rem) !important; 
-            line-height: 0.8 !important;
-            margin-top: -0.4rem !important;
-            margin-bottom: -0.4rem !important;
-          }
-          
-          /* ECO row - TIGHT spacing, almost touching DISTRICT */
-          .cs-page > div:nth-child(3) > div:nth-child(3) {
-            margin-top: -0.5rem !important;
-            line-height: 0.8 !important;
-            align-items: center !important;
+          .cs-page {
+            padding-top: 4rem !important;
             justify-content: center !important;
           }
-          .cs-page > div:nth-child(3) > div:nth-child(3) .cs-race-font { 
-            font-size: clamp(4.5rem, 20vw, 8rem) !important; 
-            line-height: 0.8 !important;
+          .cs-page > div:nth-child(3) {
+            padding: 1rem 1.25rem !important;
+            align-items: flex-start !important;
+            text-align: left !important;
+            max-width: 100% !important;
           }
-          
-          /* Bigger leaf icon */
-          .cs-page svg[viewBox="0 0 900 900"] { 
-            width: 100px !important; 
-            height: 100px !important; 
-            margin-bottom: -10px !important;
-            margin-left: -5px !important;
+
+          /* RACE */
+          .cs-page > div:nth-child(3) > .cs-race-font:nth-child(1) {
+            font-size: clamp(5.5rem, 26vw, 7rem) !important;
+            line-height: 0.82 !important;
           }
-          
-          /* Centered gradient line */
+
+          /* DISTRICT — tightened bottom margin so ECO sits right under it */
+          .cs-page > div:nth-child(3) > .cs-race-font:nth-child(2) {
+            font-size: clamp(3.4rem, 17vw, 4.8rem) !important;
+            line-height: 0.82 !important;
+            margin-top: -0.1rem !important;
+            margin-bottom: 0 !important;
+          }
+
+          /* ECO + leaf row — no top margin, hugs DISTRICT */
+          .cs-page > div:nth-child(3) > div:nth-child(3) {
+            margin-top: 0 !important;
+            line-height: 0.82 !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+          }
+          .cs-page > div:nth-child(3) > div:nth-child(3) .cs-race-font {
+            font-size: clamp(3.4rem, 17vw, 4.8rem) !important;
+            line-height: 0.82 !important;
+          }
+
+          /* ✅ FIX: Leaf SVG — was 100×100px, made smaller so it doesn't push ECO row down */
+          .cs-page svg[viewBox="0 0 900 900"] {
+            width: 62px !important;
+            height: 62px !important;
+            margin-bottom: -8px !important;
+            margin-left: -3px !important;
+          }
+
+          /* Gradient line — centered */
           .cs-page > div:nth-child(3) > div:nth-child(4) {
-            background: linear-gradient(to right, transparent, #3cb521, transparent) !important;
+            background: linear-gradient(to right, #3cb521, transparent) !important;
             margin-top: 0.5rem !important;
-            height: 4px !important;
+            height: 3px !important;
           }
-          
-          /* Full width buttons */
-          .cs-btn-row { 
-            flex-direction: column !important; 
-            width: 100% !important; 
-            gap: 0.75rem !important;
-            margin-top: 2rem !important;
+
+          /* ✅ FIX: Subtitle — was clamp(0.85rem, 2vw, 1.15rem).
+             At 390px wide, 2vw = 7.8px which is unreadably tiny.
+             Now uses a mobile-appropriate size. */
+          .cs-page > div:nth-child(3) > div:nth-child(5) {
+            font-size: 1.05rem !important;
+            margin-top: 1.1rem !important;
           }
-          .cs-btn-row button { 
-            width: 100% !important; 
-            text-align: center !important; 
-            padding: 1.1rem 1.75rem !important;
-            font-size: 1rem !important;
+
+          /* Full-width buttons */
+          .cs-btn-row {
+            flex-direction: column !important;
+            width: 100% !important;
+            gap: 0.65rem !important;
+            margin-top: 1.5rem !important;
+          }
+          .cs-btn-row button {
+            width: 100% !important;
+            text-align: center !important;
+            padding: 1rem 1.75rem !important;
+            font-size: 0.95rem !important;
           }
         }
       `}</style>
