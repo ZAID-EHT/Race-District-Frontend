@@ -1,37 +1,34 @@
 import { useEffect, useState } from 'react';
-
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
-let cachedToken = null; // module-level cache — one fetch per session
+// ✅ FIX: Import from the centralized api.js singleton instead of fetching
+//   independently. Previously useCSRF.js had its own module-level cache
+//   that was separate from api.js's cache — so the app could end up with
+//   two different CSRF tokens in memory, causing validation failures on mobile.
+import { fetchCSRFToken } from '../services/api';
 
 /**
- * useCSRF — fetches and caches the CSRF token from /api/csrf-token.
- * Returns { csrfToken, csrfHeaders } where csrfHeaders is ready to
- * spread into your fetch/axios headers.
+ * useCSRF — returns the CSRF token and a ready-to-spread headers object.
  *
  * Usage:
  *   const { csrfHeaders } = useCSRF();
  *   fetch('/api/orders', { method: 'POST', headers: { ...csrfHeaders, ... } })
+ *
+ * Note: For requests made via the `api` axios instance (api.js), you do NOT
+ * need this hook — the interceptor in api.js attaches the CSRF header
+ * automatically. Only use this hook for raw `fetch()` calls.
  */
 export function useCSRF() {
-  const [csrfToken, setCsrfToken] = useState(cachedToken);
+  const [csrfToken, setCsrfToken] = useState(null);
 
   useEffect(() => {
-    if (cachedToken) return; // already fetched
-
-    fetch(`${API_BASE}/api/csrf-token`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        cachedToken = data.csrfToken;
-        setCsrfToken(data.csrfToken);
-      })
-      .catch(() => {
-        console.warn('Could not fetch CSRF token.');
-      });
+    // fetchCSRFToken() resolves immediately from cache if already fetched.
+    // api.js eagerly fetches on module load, so this is nearly always instant.
+    fetchCSRFToken().then(token => {
+      if (token) setCsrfToken(token);
+    });
   }, []);
 
   return {
     csrfToken,
-    csrfHeaders: csrfToken ? { 'x-csrf-token': csrfToken } : {}
+    csrfHeaders: csrfToken ? { 'X-CSRF-Token': csrfToken } : {}
   };
 }

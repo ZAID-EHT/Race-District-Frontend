@@ -9,27 +9,55 @@ const api = axios.create({
   withCredentials: true
 });
 
+// ✅ FIX: Use a Promise-based singleton for CSRF token fetching.
+//   Previously, the interceptor called `await fetchCSRFToken()` lazily on
+//   every mutating request. On mobile, if two requests fired simultaneously
+//   (e.g. login + CSRF check), they'd both fetch in parallel and one would
+//   win while the other got an invalid stale value — causing "invalid CSRF token".
+//   Now: the first call creates a single shared promise. All subsequent callers
+//   wait on the SAME promise, so the token is only ever fetched once.
 let csrfToken = null;
+let csrfFetchPromise = null;
 
 export const fetchCSRFToken = async () => {
-  try {
-    const response = await api.get('/csrf-token');
-    csrfToken = response.data.csrfToken;
-    return csrfToken;
-  } catch (error) {
-    console.error('Failed to fetch CSRF token:', error);
-    return null;
-  }
+  // Return cached token immediately
+  if (csrfToken) return csrfToken;
+
+  // If a fetch is already in-flight, wait for it (don't double-fetch)
+  if (csrfFetchPromise) return csrfFetchPromise;
+
+  csrfFetchPromise = (async () => {
+    try {
+      const response = await api.get('/csrf-token');
+      csrfToken = response.data.csrfToken;
+      return csrfToken;
+    } catch (error) {
+      console.error('Failed to fetch CSRF token:', error);
+      csrfFetchPromise = null; // Allow retry on next attempt
+      return null;
+    }
+  })();
+
+  return csrfFetchPromise;
 };
 
+// ✅ FIX: Eagerly fetch the CSRF token when the module first loads.
+//   Previously it was fetched lazily inside the interceptor. On mobile,
+//   if the user tapped "Login" before the token was ready, the request
+//   would fire without a valid CSRF header and get rejected.
+fetchCSRFToken();
+
 api.interceptors.request.use(async (config) => {
+  // Attach auth token
   const token = localStorage.getItem('rd_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
+  // Attach CSRF token for state-changing requests
   const stateChangingMethods = ['post', 'put', 'patch', 'delete'];
   if (stateChangingMethods.includes(config.method?.toLowerCase())) {
-    if (!csrfToken) await fetchCSRFToken();
-    if (csrfToken) config.headers['X-CSRF-Token'] = csrfToken;
+    // fetchCSRFToken() returns immediately if already cached (no await overhead)
+    const csrf = await fetchCSRFToken();
+    if (csrf) config.headers['X-CSRF-Token'] = csrf;
   }
 
   return config;
@@ -40,16 +68,18 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // CSRF retry
+    // CSRF expired — clear cache and retry once
     if (
       error.response?.status === 403 &&
       error.response?.data?.message?.toLowerCase().includes('csrf') &&
       !originalRequest._retry
     ) {
       originalRequest._retry = true;
+      // ✅ FIX: Clear both token AND promise so fetchCSRFToken() does a fresh fetch
       csrfToken = null;
-      await fetchCSRFToken();
-      originalRequest.headers['X-CSRF-Token'] = csrfToken;
+      csrfFetchPromise = null;
+      const newToken = await fetchCSRFToken();
+      if (newToken) originalRequest.headers['X-CSRF-Token'] = newToken;
       return api(originalRequest);
     }
 
@@ -57,15 +87,6 @@ api.interceptors.response.use(
       localStorage.removeItem('rd_token');
       localStorage.removeItem('rd_user');
 
-      /*
-        FIX: Do NOT auto-redirect on /auth/me failures.
-        /auth/me is the token-validation call made at startup.
-        If it 401s (stale/expired token), we should just clear the
-        stored user and let the app render the homepage normally —
-        NOT force the user to /login.
-
-        Only redirect for explicit protected API calls (not the me-check).
-      */
       const isAuthMeCheck = originalRequest?.url?.includes('/auth/me');
       const alreadyOnLogin = window.location.pathname.includes('/login');
 

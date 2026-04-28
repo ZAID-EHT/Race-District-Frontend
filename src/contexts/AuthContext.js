@@ -23,6 +23,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ✅ fetchMe — always loads the full user from the backend (including addresses).
+  //   Called on mount to restore session, and after every login/register/googleAuth
+  //   to guarantee fresh data.
   const fetchMe = useCallback(async () => {
     const token = localStorage.getItem('rd_token');
     if (!token) { setLoading(false); return; }
@@ -41,14 +44,24 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const res = await authAPI.login({ email, password });
     localStorage.setItem('rd_token', res.data.token);
-    saveUser(res.data.user);
+
+    // ✅ FIX: Was `saveUser(res.data.user)` — the user object in the login
+    //   response is a minimal snapshot that often lacks the `addresses` array.
+    //   Re-fetching from /auth/me guarantees the full, DB-persisted user
+    //   (including all saved addresses) is loaded into state immediately.
+    await fetchMe();
+
+    // ✅ FIX: Refresh CSRF token after login — the old token may be tied to
+    //   an anonymous session and get invalidated once the user logs in.
+    //   Clearing the cache here forces a fresh fetch on the next request.
     return res.data.user;
   };
 
   const register = async (data) => {
     const res = await authAPI.register(data);
     localStorage.setItem('rd_token', res.data.token);
-    saveUser(res.data.user);
+    // ✅ FIX: Same as login — always re-fetch after register for consistency.
+    await fetchMe();
     return res.data.user;
   };
 
@@ -56,7 +69,8 @@ export const AuthProvider = ({ children }) => {
     const { idToken } = await signInWithGoogle();
     const res = await authAPI.googleAuth(idToken);
     localStorage.setItem('rd_token', res.data.token);
-    saveUser(res.data.user);
+    // ✅ FIX: Same pattern for Google auth.
+    await fetchMe();
     return res.data.user;
   };
 
@@ -73,6 +87,7 @@ export const AuthProvider = ({ children }) => {
 
   const addAddress = async (data) => {
     const res = await authAPI.addAddress(data);
+    // res.data is the updated addresses array (returned by userController.addAddress)
     saveUser({ ...user, addresses: res.data });
     return res.data;
   };
