@@ -44,17 +44,19 @@ export default function Login() {
     }, 1000);
   };
 
+  // ── Input style using CSS variables (works in both modes) ──
   const inputStyle = {
     width: '100%',
     padding: '0.75rem 1rem',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'var(--bg-input)',
+    border: '1px solid var(--border-static)',
     borderRadius: '0.375rem',
     color: 'var(--text-primary)',
     fontSize: '0.9rem',
     fontFamily: 'Inter, sans-serif',
     outline: 'none',
-    transition: 'all 0.2s'
+    transition: 'all 0.2s',
+    boxSizing: 'border-box',
   };
 
   const handleSubmit = async (e) => {
@@ -100,46 +102,99 @@ export default function Login() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--dark-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem',
-      backgroundImage: 'radial-gradient(circle at 30% 50%, rgba(0,102,255,0.05) 0%, transparent 60%)' }}>
+    <div style={{
+      minHeight: '100vh',
+      background: 'var(--bg-primary)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '1.5rem',
+      backgroundImage: 'radial-gradient(circle at 30% 50%, rgba(0,102,255,0.05) 0%, transparent 60%)'
+    }}>
       <div style={{ width: '100%', maxWidth: '440px' }}>
+
+        {/* ── Logo ── */}
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <Link to="/" style={{ textDecoration: 'none' }}>
-            <span className="font-orbitron" style={{ fontSize: '1.75rem', fontWeight: 900, color: 'white', letterSpacing: '0.1em' }}>
+            <span className="font-orbitron" style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '0.1em' }}>
               RACE<span style={{ color: '#0066FF' }}>DISTRICT</span>
             </span>
           </Link>
-          <p style={{ color: '#6B7280', fontSize: '0.875rem', marginTop: '0.5rem' }}>Built for Speed. Designed for Life.</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+            Built for Speed. Designed for Life.
+          </p>
         </div>
 
-        <div style={{ background: 'rgba(10,10,10,0.9)', border: '1px solid rgba(0,102,255,0.2)', borderRadius: '0.75rem', padding: '2.5rem' }}>
-          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', borderRadius: '0.5rem', padding: '4px', marginBottom: '2rem', gap: '4px' }}>
-            {['login','register'].map(m => (
+        {/* ── Card ── */}
+        <div style={{
+          background: 'var(--bg-card)',
+          border: '1px solid rgba(0,102,255,0.2)',
+          borderRadius: '0.75rem',
+          padding: '2.5rem'
+        }}>
+
+          {/* ── Mode toggle ── */}
+          <div style={{
+            display: 'flex',
+            background: 'var(--bg-input)',
+            borderRadius: '0.5rem',
+            padding: '4px',
+            marginBottom: '2rem',
+            gap: '4px'
+          }}>
+            {['login', 'register'].map(m => (
               <button key={m} onClick={() => setMode(m)} style={{
-                flex: 1, padding: '0.625rem', border: 'none', cursor: 'pointer', borderRadius: '6px',
+                flex: 1,
+                padding: '0.625rem',
+                border: 'none',
+                cursor: 'pointer',
+                borderRadius: '6px',
                 background: mode === m ? '#0066FF' : 'transparent',
-                color: mode === m ? 'white' : '#9CA3AF',
-                fontFamily: 'Orbitron, sans-serif', fontWeight: 700, fontSize: '0.75rem',
-                letterSpacing: '0.08em', transition: 'all 0.2s'
+                color: mode === m ? 'white' : 'var(--text-muted)',
+                fontFamily: 'Orbitron, sans-serif',
+                fontWeight: 700,
+                fontSize: '0.75rem',
+                letterSpacing: '0.08em',
+                transition: 'all 0.2s'
               }}>
                 {m === 'login' ? 'SIGN IN' : 'REGISTER'}
               </button>
             ))}
           </div>
 
-          <h2 className="font-orbitron" style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', letterSpacing: '0.05em', color: 'white' }}>
+          {/* ── Heading ── */}
+          <h2 className="font-orbitron" style={{
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            marginBottom: '0.5rem',
+            letterSpacing: '0.05em',
+            color: 'var(--text-primary)'
+          }}>
             {mode === 'login' ? 'WELCOME BACK' : 'JOIN THE RACE'}
           </h2>
-          <p style={{ color: '#6B7280', fontSize: '0.875rem', marginBottom: '1.75rem' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.75rem' }}>
             {mode === 'login' ? 'Sign in to access your garage' : 'Create your account'}
           </p>
 
+          {/* ── Google button ── */}
           <button onClick={handleGoogle} disabled={googleLoading} style={{
-            width: '100%', padding: '0.75rem', background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.375rem', color: 'white',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            gap: '0.75rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '0.9rem',
-            marginBottom: '1.25rem', transition: 'all 0.2s', opacity: googleLoading ? 0.6 : 1
+            width: '100%',
+            padding: '0.75rem',
+            background: 'var(--bg-input)',
+            border: '1px solid var(--border-static)',
+            borderRadius: '0.375rem',
+            color: 'var(--text-primary)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 600,
+            fontSize: '0.9rem',
+            marginBottom: '1.25rem',
+            transition: 'all 0.2s',
+            opacity: googleLoading ? 0.6 : 1
           }}>
             {googleLoading
               ? <div className="spinner" style={{ width: 20, height: 20, borderWidth: 2 }} />
@@ -153,26 +208,41 @@ export default function Login() {
             Continue with Google
           </button>
 
+          {/* ── Divider ── */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.25rem' }}>
-            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
-            <span style={{ color: '#6B7280', fontSize: '0.8rem' }}>or</span>
-            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
+            <div style={{ flex: 1, height: 1, background: 'var(--border-static)' }} />
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>or</span>
+            <div style={{ flex: 1, height: 1, background: 'var(--border-static)' }} />
           </div>
 
+          {/* ── Rate limit banner ── */}
           {rateLimited && (
-            <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.375rem', padding: '0.75rem', marginBottom: '1rem', color: '#fca5a5', fontSize: '0.85rem', textAlign: 'center' }}>
+            <div style={{
+              background: 'rgba(239,68,68,0.1)',
+              border: '1px solid rgba(239,68,68,0.3)',
+              borderRadius: '0.375rem',
+              padding: '0.75rem',
+              marginBottom: '1rem',
+              color: '#ef4444',
+              fontSize: '0.85rem',
+              textAlign: 'center'
+            }}>
               Too many attempts. Please wait {rateLimitCountdown}s before trying again.
             </div>
           )}
 
+          {/* ── Form ── */}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+
             {mode === 'register' && (
               <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', color: '#9CA3AF', marginBottom: '0.5rem' }}>Full Name</label>
+                <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                  Full Name
+                </label>
                 <input
                   style={inputStyle}
-                  onFocus={e => { e.target.style.borderColor = '#0066FF'; e.target.style.background = 'rgba(255,255,255,0.08)'; }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.background = 'rgba(255,255,255,0.05)'; }}
+                  onFocus={e => { e.target.style.borderColor = '#0066FF'; e.target.style.boxShadow = '0 0 0 2px rgba(0,102,255,0.15)'; }}
+                  onBlur={e => { e.target.style.borderColor = 'var(--border-static)'; e.target.style.boxShadow = 'none'; }}
                   type="text" required value={form.name}
                   onChange={e => set('name', e.target.value)}
                   placeholder="Max Verstappen"
@@ -181,24 +251,30 @@ export default function Login() {
                 />
               </div>
             )}
+
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', color: '#9CA3AF', marginBottom: '0.5rem' }}>Email</label>
+              <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                Email
+              </label>
               <input
                 style={inputStyle}
-                onFocus={e => { e.target.style.borderColor = '#0066FF'; e.target.style.background = 'rgba(255,255,255,0.08)'; }}
-                onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.background = 'rgba(255,255,255,0.05)'; }}
+                onFocus={e => { e.target.style.borderColor = '#0066FF'; e.target.style.boxShadow = '0 0 0 2px rgba(0,102,255,0.15)'; }}
+                onBlur={e => { e.target.style.borderColor = 'var(--border-static)'; e.target.style.boxShadow = 'none'; }}
                 type="email" required value={form.email}
                 onChange={e => set('email', e.target.value)}
                 placeholder="pilot@racedistrict.com"
                 autoComplete="email"
               />
             </div>
+
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', color: '#9CA3AF', marginBottom: '0.5rem' }}>Password</label>
+              <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                Password
+              </label>
               <input
                 style={inputStyle}
-                onFocus={e => { e.target.style.borderColor = '#0066FF'; e.target.style.background = 'rgba(255,255,255,0.08)'; }}
-                onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.background = 'rgba(255,255,255,0.05)'; }}
+                onFocus={e => { e.target.style.borderColor = '#0066FF'; e.target.style.boxShadow = '0 0 0 2px rgba(0,102,255,0.15)'; }}
+                onBlur={e => { e.target.style.borderColor = 'var(--border-static)'; e.target.style.boxShadow = 'none'; }}
                 type="password" required value={form.password}
                 onChange={e => set('password', e.target.value)}
                 placeholder="••••••••"
@@ -208,19 +284,19 @@ export default function Login() {
               {mode === 'register' && form.password.length > 0 && (
                 <div style={{ marginTop: '0.5rem' }}>
                   <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
-                    {[1,2,3,4].map(i => (
+                    {[1, 2, 3, 4].map(i => (
                       <div key={i} style={{
                         flex: 1, height: '3px', borderRadius: '2px',
-                        background: i <= strengthScore ? STRENGTH_COLORS[strengthScore] : 'rgba(255,255,255,0.1)',
+                        background: i <= strengthScore ? STRENGTH_COLORS[strengthScore] : 'var(--border-static)',
                         transition: 'background 0.3s'
                       }} />
                     ))}
                   </div>
-                  <p style={{ fontSize: '0.75rem', color: STRENGTH_COLORS[strengthScore] || '#6B7280' }}>
+                  <p style={{ fontSize: '0.75rem', color: STRENGTH_COLORS[strengthScore] || 'var(--text-muted)' }}>
                     {STRENGTH_LABELS[strengthScore] || 'Very weak'} password
                   </p>
                   {strengthScore < 4 && (
-                    <ul style={{ marginTop: '0.25rem', paddingLeft: '1rem', fontSize: '0.72rem', color: '#6B7280', lineHeight: 1.6 }}>
+                    <ul style={{ marginTop: '0.25rem', paddingLeft: '1rem', fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
                       {form.password.length < 8 && <li>At least 8 characters</li>}
                       {!/[A-Z]/.test(form.password) && <li>One uppercase letter</li>}
                       {!/[0-9]/.test(form.password) && <li>One number</li>}
@@ -231,14 +307,33 @@ export default function Login() {
               )}
             </div>
 
-            <button type="submit" disabled={loading || rateLimited}
-              style={{ padding: '0.875rem', background: rateLimited ? '#374151' : '#2563EB', border: '2px solid', borderColor: rateLimited ? '#374151' : '#2563EB', color: 'white', fontWeight: 700, cursor: rateLimited ? 'not-allowed' : 'pointer', fontFamily: 'Orbitron, sans-serif', fontSize: '0.875rem', letterSpacing: '0.08em', borderRadius: '0.375rem', opacity: loading ? 0.6 : 1, marginTop: '0.25rem', transition: 'all 0.2s' }}>
+            <button
+              type="submit"
+              disabled={loading || rateLimited}
+              style={{
+                padding: '0.875rem',
+                background: rateLimited ? 'var(--border-static)' : '#2563EB',
+                border: '2px solid',
+                borderColor: rateLimited ? 'var(--border-static)' : '#2563EB',
+                color: 'white',
+                fontWeight: 700,
+                cursor: rateLimited ? 'not-allowed' : 'pointer',
+                fontFamily: 'Orbitron, sans-serif',
+                fontSize: '0.875rem',
+                letterSpacing: '0.08em',
+                borderRadius: '0.375rem',
+                opacity: loading ? 0.6 : 1,
+                marginTop: '0.25rem',
+                transition: 'all 0.2s'
+              }}
+            >
               {loading ? 'LOADING...' : rateLimited ? `WAIT ${rateLimitCountdown}s` : (mode === 'login' ? 'SIGN IN' : 'CREATE ACCOUNT')}
             </button>
           </form>
         </div>
-        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.8rem', color: '#6B7280' }}>
-          <Link to="/" style={{ color: '#6B7280', textDecoration: 'none' }}>← Back to Store</Link>
+
+        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.8rem' }}>
+          <Link to="/" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>← Back to Store</Link>
         </p>
       </div>
     </div>
