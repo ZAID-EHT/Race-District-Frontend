@@ -13,20 +13,15 @@ const api = axios.create({
   withCredentials: true
 });
 
-// ✅ FIX: Use a Promise-based singleton for CSRF token fetching.
+// ── CSRF token (kept for any non-exempted routes, but orders no longer need it) ──
 let csrfToken = null;
 let csrfFetchPromise = null;
 
 export const fetchCSRFToken = async (forceRefresh = false) => {
-  // forceRefresh=true is called by Checkout right before placing an order.
-  // This busts the cache so mobile browsers (which may have received the
-  // csrf-session cookie only after the initial page load) get a fresh token
-  // that matches the cookie now present on their device.
   if (forceRefresh) {
     csrfToken = null;
     csrfFetchPromise = null;
   }
-
   if (csrfToken) return csrfToken;
   if (csrfFetchPromise) return csrfFetchPromise;
 
@@ -45,8 +40,8 @@ export const fetchCSRFToken = async (forceRefresh = false) => {
   return csrfFetchPromise;
 };
 
-// ✅ FIX: Eagerly fetch the CSRF token when the module first loads.
-fetchCSRFToken();
+// No longer eagerly fetching — orders route is exempt from CSRF on backend.
+// Token will be fetched on demand only if a non-exempt route needs it.
 
 api.interceptors.request.use(async (config) => {
   const token = localStorage.getItem('rd_token');
