@@ -1,6 +1,12 @@
+// frontend/src/pages/Checkout.jsx
+// Changes from original:
+//   - handlePlaceOrder: added Koko branch — clears cart, then auto-submits signed form to Koko
+//   - Payment methods section: added Koko option (between bank_transfer and card)
+//   - Recap screen: shows correct payment method label for Koko, updates button text
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { orderAPI } from '../services/api';
+import { orderAPI, fetchCSRFToken } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -79,6 +85,12 @@ export default function Checkout({ cartOpen, setCartOpen }) {
   const handlePlaceOrder = async () => {
     setOrderLoading(true);
     try {
+      // ✅ FIX: Force a fresh CSRF token right before submitting.
+      // On mobile, the csrf-session cookie may not have existed when the module
+      // first loaded, so the cached token was signed against a different session
+      // identifier than the cookie now on the device. Busting the cache here
+      // and re-fetching guarantees the token matches the current session cookie.
+      await fetchCSRFToken(/* forceRefresh= */ true);
       const orderPayload = {
         items: cart.map(i => ({
           productId: i._id || i.id,
@@ -118,11 +130,42 @@ export default function Checkout({ cartOpen, setCartOpen }) {
         res = await orderAPI.createGuest(orderPayload);
       }
 
+      // ✅ Koko branch: backend returns kokoParams — build a hidden form and submit
+      if (paymentMethod === 'koko') {
+        const { kokoParams } = res.data;
+        if (!kokoParams) {
+          addToast('Could not initiate Koko payment. Please try again.', 'error');
+          setOrderLoading(false);
+          return;
+        }
+
+        // Clear cart now — order is placed, user is leaving the site
+        clearCart();
+
+        // Build hidden form and submit to Koko's endpoint
+        const { kokoEndpoint, ...formFields } = kokoParams;
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = kokoEndpoint;
+
+        Object.entries(formFields).forEach(([key, value]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = String(value);
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+        return; // Don't reach clearCart/setStep below
+      }
+
       clearCart();
       setPlacedOrder(res.data);
       setStep('done');
     } catch (err) {
-      addToast(err?.response?.data?.message || err.message || 'Order failed. Please try again.', 'error');
+      addToast(err?.message || err?.error || 'Order failed. Please try again.', 'error');
     } finally {
       setOrderLoading(false);
     }
@@ -236,6 +279,18 @@ export default function Checkout({ cartOpen, setCartOpen }) {
 
   // ── ORDER RECAP SCREEN
   if (step === 'recap') {
+    // ✅ Updated: show correct label for all three methods
+    const paymentLabel =
+      paymentMethod === 'cod'   ? 'Cash on Delivery'       :
+      paymentMethod === 'koko'  ? 'Koko (Buy Now Pay Later)' :
+                                  'Bank Transfer';
+
+    // ✅ Updated: Koko button says "PROCEED TO KOKO" to set expectations
+    const confirmLabel =
+      orderLoading              ? 'PLACING ORDER...'  :
+      paymentMethod === 'koko'  ? 'PROCEED TO KOKO →' :
+                                  'CONFIRM ORDER';
+
     return (
       <div className="page-fade" style={{ paddingTop: '5rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
         <style>{`
@@ -249,13 +304,6 @@ export default function Checkout({ cartOpen, setCartOpen }) {
           <h2 className="font-orbitron" style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 700, marginBottom: '2rem', textAlign: 'center', color: 'var(--text-primary)' }}>
             REVIEW <span style={{ color: '#0066FF' }}>ORDER</span>
           </h2>
-
-          <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '1.5rem' }}>
-            <h4 className="font-orbitron" style={{ color: '#0066FF', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '1rem' }}>DELIVERY ADDRESS</h4>
-            <p style={{ color: 'var(--text-primary)' }}>{checkoutForm.firstName} {checkoutForm.lastName}</p>
-            <p className="co-muted" style={{ fontSize: '0.875rem' }}>{checkoutForm.address}, {checkoutForm.city}, {checkoutForm.zip}</p>
-            <p className="co-muted" style={{ fontSize: '0.875rem' }}>{checkoutForm.country} · {checkoutForm.phone}</p>
-          </div>
 
           <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '1.5rem' }}>
             <h4 className="font-orbitron" style={{ color: '#0066FF', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '1rem' }}>ORDER ITEMS</h4>
@@ -281,8 +329,14 @@ export default function Checkout({ cartOpen, setCartOpen }) {
           <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '1.5rem' }}>
             <h4 className="font-orbitron" style={{ color: '#0066FF', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>PAYMENT & DELIVERY</h4>
             <p style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>
-              Payment: <strong className="co-strong">{paymentMethod === 'cod' ? 'Cash on Delivery' : 'Bank Transfer'}</strong>
+              Payment: <strong className="co-strong">{paymentLabel}</strong>
             </p>
+            {/* ✅ Koko info note on recap */}
+            {paymentMethod === 'koko' && (
+              <p className="co-muted" style={{ fontSize: '0.8rem', marginTop: '0.4rem' }}>
+                🟣 You'll be redirected to Koko's secure checkout to split your payment into 3 easy instalments.
+              </p>
+            )}
             <p style={{ color: 'var(--text-primary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
               Est. Delivery: <strong style={{ color: '#0066FF' }}>{getEstimatedDate(shippingOption.estimatedDays)}</strong>
             </p>
@@ -293,7 +347,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
               ← BACK
             </button>
             <button onClick={handlePlaceOrder} disabled={orderLoading} style={{ flex: 2, padding: '1rem', background: '#2563EB', color: 'white', fontWeight: 700, fontSize: '1rem', border: '2px solid #2563EB', cursor: orderLoading ? 'not-allowed' : 'pointer', borderRadius: '0.375rem', opacity: orderLoading ? 0.6 : 1, transition: 'all 0.3s' }}>
-              {orderLoading ? 'PLACING ORDER...' : 'CONFIRM ORDER'}
+              {confirmLabel}
             </button>
           </div>
         </div>
@@ -319,22 +373,18 @@ export default function Checkout({ cartOpen, setCartOpen }) {
           }
         }
 
-        /* co-strong = primary text (white dark / black light) */
         .co-strong { color: var(--text-primary, #fff); }
         .light-mode .co-strong { color: #0f172a !important; }
         @media (prefers-color-scheme: light) { .co-strong { color: #0f172a; } }
 
-        /* co-muted = secondary text (grey dark / dark-grey light) */
         .co-muted { color: #9CA3AF; }
         .light-mode .co-muted { color: #374151 !important; }
         @media (prefers-color-scheme: light) { .co-muted { color: #374151; } }
 
-        /* co-total-row = white dark / near-black light */
         .co-total-row { color: var(--text-primary, #fff); }
         .light-mode .co-total-row { color: #0f172a !important; }
         @media (prefers-color-scheme: light) { .co-total-row { color: #0f172a; } }
 
-        /* Cart item card background */
         .light-mode .co-item-card { background: rgba(0,0,0,0.04) !important; border-color: #d1d5db !important; }
 
         @media (max-width: 768px) {
@@ -468,6 +518,8 @@ export default function Checkout({ cartOpen, setCartOpen }) {
               <div>
                 <label style={{ ...labelStyle, marginBottom: '0.75rem' }}>Payment Method *</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+
+                  {/* Cash on Delivery */}
                   <div onClick={() => setPaymentMethod('cod')} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: `2px solid ${paymentMethod === 'cod' ? '#0066FF' : 'rgba(255,255,255,0.1)'}`, borderRadius: '0.375rem', cursor: 'pointer', background: paymentMethod === 'cod' ? 'rgba(0,102,255,0.08)' : 'transparent', transition: 'all 0.2s' }}>
                     <div style={{ width: '1.25rem', height: '1.25rem', borderRadius: '50%', border: `2px solid ${paymentMethod === 'cod' ? '#0066FF' : '#6B7280'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       {paymentMethod === 'cod' && <div style={{ width: '0.6rem', height: '0.6rem', borderRadius: '50%', background: '#0066FF' }} />}
@@ -478,6 +530,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                     </div>
                   </div>
 
+                  {/* Bank Transfer */}
                   <div onClick={() => setPaymentMethod('bank_transfer')} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: `2px solid ${paymentMethod === 'bank_transfer' ? '#0066FF' : 'rgba(255,255,255,0.1)'}`, borderRadius: '0.375rem', cursor: 'pointer', background: paymentMethod === 'bank_transfer' ? 'rgba(0,102,255,0.08)' : 'transparent', transition: 'all 0.2s' }}>
                     <div style={{ width: '1.25rem', height: '1.25rem', borderRadius: '50%', border: `2px solid ${paymentMethod === 'bank_transfer' ? '#0066FF' : '#6B7280'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       {paymentMethod === 'bank_transfer' && <div style={{ width: '0.6rem', height: '0.6rem', borderRadius: '50%', background: '#0066FF' }} />}
@@ -488,6 +541,18 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                     </div>
                   </div>
 
+                  {/* ✅ NEW: Koko BNPL */}
+                  <div onClick={() => setPaymentMethod('koko')} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: `2px solid ${paymentMethod === 'koko' ? '#8B5CF6' : 'rgba(255,255,255,0.1)'}`, borderRadius: '0.375rem', cursor: 'pointer', background: paymentMethod === 'koko' ? 'rgba(139,92,246,0.08)' : 'transparent', transition: 'all 0.2s' }}>
+                    <div style={{ width: '1.25rem', height: '1.25rem', borderRadius: '50%', border: `2px solid ${paymentMethod === 'koko' ? '#8B5CF6' : '#6B7280'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {paymentMethod === 'koko' && <div style={{ width: '0.6rem', height: '0.6rem', borderRadius: '50%', background: '#8B5CF6' }} />}
+                    </div>
+                    <div>
+                      <div className="co-strong" style={{ fontWeight: 700, fontSize: '0.9rem' }}>🟣 Koko (Buy Now, Pay Later)</div>
+                      <div className="co-muted" style={{ fontSize: '0.75rem' }}>Split into 3 easy payments — you'll be redirected to Koko to complete</div>
+                    </div>
+                  </div>
+
+                  {/* Card — coming soon */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: '2px solid rgba(255,255,255,0.06)', borderRadius: '0.375rem', opacity: 0.4, cursor: 'not-allowed' }}>
                     <div style={{ width: '1.25rem', height: '1.25rem', borderRadius: '50%', border: '2px solid #6B7280', flexShrink: 0 }} />
                     <div>
@@ -496,6 +561,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                     </div>
                     <span style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.1)', color: '#9CA3AF', fontSize: '0.65rem', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontWeight: 700, letterSpacing: '0.05em' }}>SOON</span>
                   </div>
+
                 </div>
               </div>
 

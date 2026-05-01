@@ -1,3 +1,7 @@
+// frontend/src/services/api.js
+// Changes from original:
+//   - orderAPI: added verifyKokoOrder(params) — called by KokoReturn.jsx
+
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://race-district-backend-production.up.railway.app/api';
@@ -10,20 +14,20 @@ const api = axios.create({
 });
 
 // ✅ FIX: Use a Promise-based singleton for CSRF token fetching.
-//   Previously, the interceptor called `await fetchCSRFToken()` lazily on
-//   every mutating request. On mobile, if two requests fired simultaneously
-//   (e.g. login + CSRF check), they'd both fetch in parallel and one would
-//   win while the other got an invalid stale value — causing "invalid CSRF token".
-//   Now: the first call creates a single shared promise. All subsequent callers
-//   wait on the SAME promise, so the token is only ever fetched once.
 let csrfToken = null;
 let csrfFetchPromise = null;
 
-export const fetchCSRFToken = async () => {
-  // Return cached token immediately
-  if (csrfToken) return csrfToken;
+export const fetchCSRFToken = async (forceRefresh = false) => {
+  // forceRefresh=true is called by Checkout right before placing an order.
+  // This busts the cache so mobile browsers (which may have received the
+  // csrf-session cookie only after the initial page load) get a fresh token
+  // that matches the cookie now present on their device.
+  if (forceRefresh) {
+    csrfToken = null;
+    csrfFetchPromise = null;
+  }
 
-  // If a fetch is already in-flight, wait for it (don't double-fetch)
+  if (csrfToken) return csrfToken;
   if (csrfFetchPromise) return csrfFetchPromise;
 
   csrfFetchPromise = (async () => {
@@ -33,7 +37,7 @@ export const fetchCSRFToken = async () => {
       return csrfToken;
     } catch (error) {
       console.error('Failed to fetch CSRF token:', error);
-      csrfFetchPromise = null; // Allow retry on next attempt
+      csrfFetchPromise = null;
       return null;
     }
   })();
@@ -42,20 +46,14 @@ export const fetchCSRFToken = async () => {
 };
 
 // ✅ FIX: Eagerly fetch the CSRF token when the module first loads.
-//   Previously it was fetched lazily inside the interceptor. On mobile,
-//   if the user tapped "Login" before the token was ready, the request
-//   would fire without a valid CSRF header and get rejected.
 fetchCSRFToken();
 
 api.interceptors.request.use(async (config) => {
-  // Attach auth token
   const token = localStorage.getItem('rd_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
-  // Attach CSRF token for state-changing requests
   const stateChangingMethods = ['post', 'put', 'patch', 'delete'];
   if (stateChangingMethods.includes(config.method?.toLowerCase())) {
-    // fetchCSRFToken() returns immediately if already cached (no await overhead)
     const csrf = await fetchCSRFToken();
     if (csrf) config.headers['X-CSRF-Token'] = csrf;
   }
@@ -68,14 +66,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // CSRF expired — clear cache and retry once
     if (
       error.response?.status === 403 &&
       error.response?.data?.message?.toLowerCase().includes('csrf') &&
       !originalRequest._retry
     ) {
       originalRequest._retry = true;
-      // ✅ FIX: Clear both token AND promise so fetchCSRFToken() does a fresh fetch
       csrfToken = null;
       csrfFetchPromise = null;
       const newToken = await fetchCSRFToken();
@@ -120,12 +116,14 @@ export const productAPI = {
 };
 
 export const orderAPI = {
-  create:       (data)        => api.post('/orders', data),
-  createGuest:  (data)        => api.post('/orders/guest', data),
-  getMyOrders:  (params)      => api.get('/orders/my-orders', { params }),
-  getById:      (id)          => api.get(`/orders/${id}`),
-  cancelOrder:  (id)          => api.put(`/orders/${id}/cancel`),
-  track:        (orderNumber) => api.get(`/orders/track/${orderNumber}`, { timeout: 30000 }),
+  create:             (data)        => api.post('/orders', data),
+  createGuest:        (data)        => api.post('/orders/guest', data),
+  getMyOrders:        (params)      => api.get('/orders/my-orders', { params }),
+  getById:            (id)          => api.get(`/orders/${id}`),
+  cancelOrder:        (id)          => api.put(`/orders/${id}/cancel`),
+  track:              (orderNumber) => api.get(`/orders/track/${orderNumber}`, { timeout: 30000 }),
+  // ✅ Added: called by KokoReturn.jsx to verify payment status server-side
+  verifyKokoOrder:    (params)      => api.get('/orders/koko-verify', { params }),
 };
 
 export const adminAPI = {
