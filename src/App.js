@@ -12,6 +12,7 @@ import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import About from './pages/About';
 import Checkout from './pages/Checkout';
+import KokoReturn from './pages/KokoReturn';
 import Login from './pages/Login';
 import Account from './pages/Account';
 import TrackOrder from './pages/TrackOrder';
@@ -139,6 +140,8 @@ function AppRoutes() {
         <Route path="/account" element={<ProtectedRoute><StoreLayout><Account /></StoreLayout></ProtectedRoute>} />
         <Route path="/account/:tab" element={<ProtectedRoute><StoreLayout><Account /></StoreLayout></ProtectedRoute>} />
         <Route path="/checkout" element={<StoreLayout><Checkout /></StoreLayout>} />
+        <Route path="/checkout/koko-return" element={<StoreLayout><KokoReturn /></StoreLayout>} />
+        <Route path="/checkout/koko-cancel" element={<StoreLayout><KokoReturn /></StoreLayout>} />
 
         {/* Admin pages */}
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
