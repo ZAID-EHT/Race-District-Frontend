@@ -12,7 +12,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 
 const SHIPPING_OPTIONS = [
-  { id: 'island_wide', name: 'Island-Wide Shipping', cost: 600, estimatedDays: 3, description: 'Delivery anywhere in Sri Lanka' },
+  { id: 'island_wide', name: 'Island-Wide Shipping', cost: 400, estimatedDays: 3, description: 'Delivery anywhere in Sri Lanka' },
 ];
 
 const BANK_DETAILS = {
