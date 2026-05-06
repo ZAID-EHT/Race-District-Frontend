@@ -1,12 +1,4 @@
 // frontend/src/pages/KokoReturn.jsx
-// Koko redirects the user here after they pay (success or failure).
-// URL: /checkout/koko-return?orderId=...&trnId=...&status=SUCCESS|FAILURE|CANCELED
-//
-// This page:
-//   1. Reads Koko's URL params
-//   2. Calls our backend (GET /api/orders/koko-verify) to confirm status server-side
-//   3. Shows the appropriate success / failure / cancelled screen
-
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { orderAPI } from '../services/api';
@@ -17,46 +9,60 @@ export default function KokoReturn() {
   const navigate        = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  const [screen, setScreen]           = useState('loading'); // 'loading' | 'success' | 'failed' | 'cancelled'
+  const [screen, setScreen]           = useState('loading');
   const [orderNumber, setOrderNumber] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
 
-  const orderId   = searchParams.get('orderId');
-  const kokoStatus = searchParams.get('status');   // SUCCESS | FAILURE | CANCELED
+  const kokoOrderId = searchParams.get('orderId');
+  const kokoStatus  = searchParams.get('status');
+
+  // ✅ FIX 1: Scroll to top as soon as the page loads
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
 
   useEffect(() => {
     const verify = async () => {
-      if (!orderId) { setScreen('failed'); return; }
+      if (!kokoOrderId) { setScreen('failed'); return; }
+
+      // ✅ FIX 2: If Koko already says it failed/cancelled, do NOT call verify
+      // (no order was created, so there's nothing to verify on the backend)
+      const rawStatus = (kokoStatus || '').toUpperCase();
+      if (rawStatus === 'FAILURE' || rawStatus === 'CANCELED' || rawStatus === 'CANCELLED') {
+        setScreen(rawStatus === 'CANCELED' || rawStatus === 'CANCELLED' ? 'cancelled' : 'failed');
+        return;
+      }
 
       try {
-        const res = await orderAPI.verifyKokoOrder({ orderId });
+        // ✅ FIX 3: Only verify with backend when Koko says SUCCESS
+        const res  = await orderAPI.verifyKokoOrder({ orderId: kokoOrderId });
         const data = res.data;
-        if (data.orderNumber) setOrderNumber(data.orderNumber);
 
-        const sts = (data.kokoStatus || kokoStatus || '').toUpperCase();
-        if (sts === 'SUCCESS')          setScreen('success');
-        else if (sts === 'CANCELED')    setScreen('cancelled');
-        else                            setScreen('failed');
+        if (data.orderNumber)   setOrderNumber(data.orderNumber);
+        if (data.customerEmail) setCustomerEmail(data.customerEmail);
+
+        const sts = (data.ourStatus || data.kokoStatus || rawStatus).toUpperCase();
+        if (sts === 'CONFIRMED' || sts === 'SUCCESS') setScreen('success');
+        else if (sts === 'CANCELED' || sts === 'CANCELLED')  setScreen('cancelled');
+        else setScreen('failed');
       } catch {
-        // If the verify call fails, fall back to Koko's URL param
-        const sts = (kokoStatus || '').toUpperCase();
-        if (sts === 'SUCCESS')          setScreen('success');
-        else if (sts === 'CANCELED')    setScreen('cancelled');
-        else                            setScreen('failed');
+        // If backend call fails, trust Koko's URL param
+        if (rawStatus === 'SUCCESS') setScreen('success');
+        else if (rawStatus === 'CANCELED' || rawStatus === 'CANCELLED') setScreen('cancelled');
+        else setScreen('failed');
       }
     };
 
     verify();
-  }, [orderId, kokoStatus]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [kokoOrderId, kokoStatus]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Shared styles ──────────────────────────────────────────────────────
   const wrap = {
     minHeight: '100vh',
     background: 'var(--bg-primary)',
-    paddingTop: '5rem',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '2rem 1rem',
+    padding: '6rem 1rem 2rem',
   };
   const card = {
     maxWidth: '36rem',
@@ -78,7 +84,6 @@ export default function KokoReturn() {
     fontSize: '0.9rem',
   });
 
-  // ── Loading ─────────────────────────────────────────────────────────────
   if (screen === 'loading') {
     return (
       <div style={wrap}>
@@ -93,7 +98,6 @@ export default function KokoReturn() {
     );
   }
 
-  // ── Success ─────────────────────────────────────────────────────────────
   if (screen === 'success') {
     return (
       <div style={wrap}>
@@ -110,6 +114,8 @@ export default function KokoReturn() {
           <p className="co-muted" style={{ marginBottom: '0.5rem' }}>
             Your Koko payment was successful. We'll start preparing your order right away! 🎉
           </p>
+
+          {/* ✅ FIX 4: Show the actual email address the invoice was sent to */}
           <div style={{
             background: 'rgba(5,150,105,0.1)', border: '1px solid rgba(5,150,105,0.3)',
             borderRadius: '0.5rem', padding: '0.875rem 1.25rem', margin: '1.5rem 0',
@@ -117,8 +123,15 @@ export default function KokoReturn() {
             display: 'flex', gap: '0.6rem', alignItems: 'flex-start',
           }}>
             <span style={{ fontSize: '1rem', marginTop: '0.05rem' }}>📧</span>
-            <span>Your order invoice has been sent to your email address.</span>
+            <span>
+              Your order invoice has been sent to{' '}
+              {customerEmail
+                ? <strong style={{ color: '#34d399' }}>{customerEmail}</strong>
+                : 'your email address'
+              }. Please check your inbox.
+            </span>
           </div>
+
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             {isAuthenticated && (
               <button onClick={() => navigate('/account/orders')} style={btn(true)}>
@@ -134,7 +147,6 @@ export default function KokoReturn() {
     );
   }
 
-  // ── Cancelled ────────────────────────────────────────────────────────────
   if (screen === 'cancelled') {
     return (
       <div style={wrap}>
@@ -147,19 +159,15 @@ export default function KokoReturn() {
             You cancelled the Koko payment. Your order has not been placed — your cart is safe.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={() => navigate('/checkout')} style={btn(true)}>
-              Try Again
-            </button>
-            <button onClick={() => navigate('/products')} style={btn(false)}>
-              Continue Shopping
-            </button>
+            <button onClick={() => navigate('/checkout')} style={btn(true)}>Try Again</button>
+            <button onClick={() => navigate('/products')} style={btn(false)}>Continue Shopping</button>
           </div>
         </div>
       </div>
     );
   }
 
-  // ── Failed ───────────────────────────────────────────────────────────────
+  // Failed screen
   return (
     <div style={wrap}>
       <div style={card}>
@@ -171,12 +179,8 @@ export default function KokoReturn() {
           Your Koko payment could not be completed. Please try again or choose a different payment method.
         </p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button onClick={() => navigate('/checkout')} style={btn(true)}>
-            Try Again
-          </button>
-          <button onClick={() => navigate('/products')} style={btn(false)}>
-            Continue Shopping
-          </button>
+          <button onClick={() => navigate('/checkout')} style={btn(true)}>Try Again</button>
+          <button onClick={() => navigate('/products')} style={btn(false)}>Continue Shopping</button>
         </div>
       </div>
     </div>

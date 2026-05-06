@@ -1,9 +1,4 @@
 // frontend/src/pages/Checkout.jsx
-// Changes from original:
-//   - handlePlaceOrder: added Koko branch — clears cart, then auto-submits signed form to Koko
-//   - Payment methods section: added Koko option (between bank_transfer and card)
-//   - Recap screen: shows correct payment method label for Koko, updates button text
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { orderAPI, fetchCSRFToken } from '../services/api';
@@ -72,8 +67,13 @@ export default function Checkout({ cartOpen, setCartOpen }) {
     }
   }, [isAuthenticated, user]);
 
+  // ✅ FIX 1: Scroll to top whenever step changes (details → recap → done)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [step]);
+
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = shippingOption.cost;
+  const shipping = shippingOption.cost; // always 400
   const total = subtotal + shipping;
 
   const handleDetailsSubmit = (e) => {
@@ -85,12 +85,9 @@ export default function Checkout({ cartOpen, setCartOpen }) {
   const handlePlaceOrder = async () => {
     setOrderLoading(true);
     try {
-      // ✅ FIX: Force a fresh CSRF token right before submitting.
-      // On mobile, the csrf-session cookie may not have existed when the module
-      // first loaded, so the cached token was signed against a different session
-      // identifier than the cookie now on the device. Busting the cache here
-      // and re-fetching guarantees the token matches the current session cookie.
       await fetchCSRFToken(/* forceRefresh= */ true);
+
+      // ✅ FIX 2: Always send shippingCost as 400 — no overrides from backend's old 600 fee
       const orderPayload = {
         items: cart.map(i => ({
           productId: i._id || i.id,
@@ -112,15 +109,15 @@ export default function Checkout({ cartOpen, setCartOpen }) {
         shippingMethod: {
           id: shippingOption.id,
           name: shippingOption.name,
-          cost: shippingOption.cost,
+          cost: 400, // ✅ always 400
           estimatedDays: shippingOption.estimatedDays,
         },
         payment: { method: paymentMethod },
         guestEmail: !isAuthenticated ? checkoutForm.email : undefined,
         subtotal,
-        shippingCost: shipping,
+        shippingCost: 400, // ✅ always 400
         tax: 0,
-        total,
+        total: subtotal + 400, // ✅ recalculate with fixed 400
       };
 
       let res;
@@ -139,7 +136,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
           return;
         }
 
-        // Clear cart now — order is placed, user is leaving the site
+        // Clear cart now — order is pending, user is leaving the site
         clearCart();
 
         // Build hidden form and submit to Koko's endpoint
@@ -158,7 +155,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
 
         document.body.appendChild(form);
         form.submit();
-        return; // Don't reach clearCart/setStep below
+        return;
       }
 
       clearCart();
@@ -212,7 +209,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
           <p className="co-muted" style={{ marginBottom: '0.5rem' }}>Order <span style={{ color: '#0066FF', fontWeight: 700 }}>{placedOrder.orderNumber}</span></p>
           <p className="co-muted" style={{ marginBottom: '2rem' }}>
             {isCOD && "Pay when your order arrives. We'll get it ready right away!"}
-            {isBankTransfer && 'Please complete your bank transfer recipt to confirm your order.'}
+            {isBankTransfer && 'Please complete your bank transfer to confirm your order.'}
           </p>
 
           <div className="co-muted" style={{ background: 'rgba(0,102,255,0.07)', border: '1px solid rgba(0,102,255,0.2)', borderRadius: '0.5rem', padding: '0.875rem 1.25rem', marginBottom: '1.5rem', fontSize: '0.85rem', textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
@@ -279,17 +276,16 @@ export default function Checkout({ cartOpen, setCartOpen }) {
 
   // ── ORDER RECAP SCREEN
   if (step === 'recap') {
-    // ✅ Updated: show correct label for all three methods
     const paymentLabel =
-      paymentMethod === 'cod'   ? 'Cash on Delivery'       :
+      paymentMethod === 'cod'   ? 'Cash on Delivery'         :
       paymentMethod === 'koko'  ? 'Koko (Buy Now Pay Later)' :
                                   'Bank Transfer';
 
-    // ✅ Updated: Koko button says "PROCEED TO KOKO" to set expectations
+    // ✅ FIX 3: Show "Placing order..." while loading, then payment-specific label
     const confirmLabel =
-      orderLoading              ? 'PLACING ORDER...'  :
-      paymentMethod === 'koko'  ? 'PROCEED TO KOKO →' :
-                                  'CONFIRM ORDER';
+      orderLoading             ? 'PLACING ORDER...'   :
+      paymentMethod === 'koko' ? 'PROCEED TO KOKO →'  :
+                                 'CONFIRM ORDER';
 
     return (
       <div className="page-fade" style={{ paddingTop: '5rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
@@ -305,6 +301,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
             REVIEW <span style={{ color: '#0066FF' }}>ORDER</span>
           </h2>
 
+          {/* ✅ FIX 4: Order items always visible on recap — cart is read from state, not cleared yet */}
           <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '1.5rem' }}>
             <h4 className="font-orbitron" style={{ color: '#0066FF', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '1rem' }}>ORDER ITEMS</h4>
             {cart.map((item, i) => (
@@ -318,12 +315,24 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                 <span>Subtotal</span><span>LKR {subtotal.toLocaleString()}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9CA3AF', fontSize: '0.875rem' }}>
-                <span>Shipping ({shippingOption.name})</span><span>LKR {shipping.toLocaleString()}</span>
+                {/* ✅ FIX 5: Show fixed 400 — always */}
+                <span>Shipping ({shippingOption.name})</span><span>LKR 400</span>
               </div>
               <div className="co-total-row" style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.125rem', paddingTop: '0.5rem', borderTop: '1px solid var(--co-divider, #1F2937)' }}>
-                <span>Total</span><span style={{ color: '#0066FF' }}>LKR {total.toLocaleString()}</span>
+                <span>Total</span><span style={{ color: '#0066FF' }}>LKR {(subtotal + 400).toLocaleString()}</span>
               </div>
             </div>
+          </div>
+
+          {/* Shipping address recap */}
+          <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '1.5rem' }}>
+            <h4 className="font-orbitron" style={{ color: '#0066FF', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>DELIVERY ADDRESS</h4>
+            <p style={{ color: 'var(--text-primary)', fontSize: '0.875rem', lineHeight: 1.6 }}>
+              {checkoutForm.firstName} {checkoutForm.lastName}<br />
+              {checkoutForm.address}, {checkoutForm.city}{checkoutForm.zip ? `, ${checkoutForm.zip}` : ''}<br />
+              {checkoutForm.country}<br />
+              📞 {checkoutForm.phone}
+            </p>
           </div>
 
           <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '1.5rem' }}>
@@ -331,7 +340,6 @@ export default function Checkout({ cartOpen, setCartOpen }) {
             <p style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>
               Payment: <strong className="co-strong">{paymentLabel}</strong>
             </p>
-            {/* ✅ Koko info note on recap */}
             {paymentMethod === 'koko' && (
               <p className="co-muted" style={{ fontSize: '0.8rem', marginTop: '0.4rem' }}>
                 🟣 You'll be redirected to Koko's secure checkout to split your payment into 3 easy instalments.
@@ -359,7 +367,6 @@ export default function Checkout({ cartOpen, setCartOpen }) {
   return (
     <div className="page-fade" style={{ paddingTop: '5rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
       <style>{`
-        /* ── Light mode CSS variable overrides ── */
         .light-mode {
           --co-input-bg: rgba(0,0,0,0.04);
           --co-input-border: rgba(0,0,0,0.15);
@@ -372,21 +379,16 @@ export default function Checkout({ cartOpen, setCartOpen }) {
             --co-divider: #e5e7eb;
           }
         }
-
         .co-strong { color: var(--text-primary, #fff); }
         .light-mode .co-strong { color: #0f172a !important; }
         @media (prefers-color-scheme: light) { .co-strong { color: #0f172a; } }
-
         .co-muted { color: #9CA3AF; }
         .light-mode .co-muted { color: #374151 !important; }
         @media (prefers-color-scheme: light) { .co-muted { color: #374151; } }
-
         .co-total-row { color: var(--text-primary, #fff); }
         .light-mode .co-total-row { color: #0f172a !important; }
         @media (prefers-color-scheme: light) { .co-total-row { color: #0f172a; } }
-
         .light-mode .co-item-card { background: rgba(0,0,0,0.04) !important; border-color: #d1d5db !important; }
-
         @media (max-width: 768px) {
           .checkout-main-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
           .checkout-wrap { padding: 2rem 1rem !important; }
@@ -405,7 +407,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
 
         <div className="checkout-main-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
 
-          {/* LEFT: Order Summary + Shipping */}
+          {/* LEFT: Order Summary */}
           <div className="checkout-summary-panel" style={{ background: 'var(--bg-card)', border: '1px solid rgba(59,130,246,0.2)', padding: '2rem', borderRadius: '0.5rem', height: 'fit-content' }}>
             <h3 className="font-orbitron" style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
               <svg style={{ width: '1.25rem', height: '1.25rem', color: '#0066FF' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -421,11 +423,11 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                   <div key={item.cartId || i} className="co-item-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(31,41,55,0.5)', padding: '0.75rem 1rem', borderRadius: '0.375rem', border: '1px solid #374151' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <div style={{ width: '3rem', height: '3rem', borderRadius: '0.375rem', overflow: 'hidden', flexShrink: 0, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {(item.images?.[0]?.url || item.image)
-                        ? <img src={item.images?.[0]?.url || item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        : <span style={{ fontSize: '1.5rem' }}>📦</span>
-                      }
-                    </div>
+                        {(item.images?.[0]?.url || item.image)
+                          ? <img src={item.images?.[0]?.url || item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          : <span style={{ fontSize: '1.5rem' }}>📦</span>
+                        }
+                      </div>
                       <div>
                         <div className="co-strong" style={{ fontWeight: 700, fontSize: '0.875rem' }}>{item.name}</div>
                         <div className="co-muted" style={{ fontSize: '0.75rem' }}>LKR {item.price.toLocaleString()} × {item.quantity}</div>
@@ -438,16 +440,16 @@ export default function Checkout({ cartOpen, setCartOpen }) {
               }
             </div>
 
-            {/* Totals */}
+            {/* Totals — always show 400 */}
             <div style={{ borderTop: '1px solid #1F2937', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9CA3AF', fontSize: '0.875rem' }}>
                 <span>Subtotal</span><span>LKR {subtotal.toLocaleString()}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9CA3AF', fontSize: '0.875rem' }}>
-                <span>Shipping</span><span>LKR {shipping.toLocaleString()}</span>
+                <span>Shipping</span><span>LKR 400</span>
               </div>
               <div className="co-total-row" style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.25rem', paddingTop: '0.5rem', borderTop: '1px solid var(--co-divider, #1F2937)' }}>
-                <span>Total</span><span style={{ color: '#0066FF' }}>LKR {total.toLocaleString()}</span>
+                <span>Total</span><span style={{ color: '#0066FF' }}>LKR {(subtotal + 400).toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -502,7 +504,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                 </div>
               </div>
 
-              {/* Delivery — single option shown as info */}
+              {/* Delivery */}
               <div>
                 <label style={{ ...labelStyle, marginBottom: '0.75rem' }}>Delivery</label>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', border: '2px solid #0066FF', borderRadius: '0.375rem', background: 'rgba(0,102,255,0.1)' }}>
@@ -510,7 +512,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                     <div className="co-strong" style={{ fontWeight: 700, fontSize: '0.875rem' }}>{SHIPPING_OPTIONS[0].name}</div>
                     <div className="co-muted" style={{ fontSize: '0.75rem' }}>{SHIPPING_OPTIONS[0].description} · Est. {getEstimatedDate(SHIPPING_OPTIONS[0].estimatedDays)}</div>
                   </div>
-                  <span style={{ color: '#0066FF', fontWeight: 700, fontSize: '0.875rem', flexShrink: 0 }}>LKR {SHIPPING_OPTIONS[0].cost.toLocaleString()}</span>
+                  <span style={{ color: '#0066FF', fontWeight: 700, fontSize: '0.875rem', flexShrink: 0 }}>LKR 400</span>
                 </div>
               </div>
 
@@ -537,11 +539,11 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                     </div>
                     <div>
                       <div className="co-strong" style={{ fontWeight: 700, fontSize: '0.9rem' }}>🏦 Bank Transfer</div>
-                      <div className="co-muted" style={{ fontSize: '0.75rem' }}>Transfer recipt to 0750158254 — order set to pending until receipt confirmed</div>
+                      <div className="co-muted" style={{ fontSize: '0.75rem' }}>Transfer receipt to 0750158254 — order set to pending until receipt confirmed</div>
                     </div>
                   </div>
 
-                  {/* ✅ NEW: Koko BNPL */}
+                  {/* Koko BNPL */}
                   <div onClick={() => setPaymentMethod('koko')} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: `2px solid ${paymentMethod === 'koko' ? '#8B5CF6' : 'rgba(255,255,255,0.1)'}`, borderRadius: '0.375rem', cursor: 'pointer', background: paymentMethod === 'koko' ? 'rgba(139,92,246,0.08)' : 'transparent', transition: 'all 0.2s' }}>
                     <div style={{ width: '1.25rem', height: '1.25rem', borderRadius: '50%', border: `2px solid ${paymentMethod === 'koko' ? '#8B5CF6' : '#6B7280'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       {paymentMethod === 'koko' && <div style={{ width: '0.6rem', height: '0.6rem', borderRadius: '50%', background: '#8B5CF6' }} />}
