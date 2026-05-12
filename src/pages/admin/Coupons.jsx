@@ -265,7 +265,7 @@ export default function AdminCoupons() {
         ))}
         <button onClick={() => setModal('create')}
           style={{ marginLeft: 'auto', padding: '0.6rem 1.25rem', borderRadius: 6, background: 'var(--rd-blue)', border: 'none', color: 'white', fontWeight: 700, cursor: 'pointer', fontSize: '0.8rem', letterSpacing: '0.05em' }}>
-          <i className="fas fa-plus" style={{ marginRight: 6 }} />NEW COUPON
++ NEW COUPON
         </button>
       </div>
 
@@ -308,29 +308,29 @@ export default function AdminCoupons() {
                         {isExpired(c) ? badge('EXPIRED', '#888') : c.active ? badge('ACTIVE', '#22c55e') : badge('INACTIVE', '#f59e0b')}
                       </td>
                       <td style={td}>
-                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                           {/* Toggle */}
                           <button
                             onClick={() => handleToggle(c)}
                             disabled={togglingId === c._id}
                             title={c.active ? 'Disable' : 'Enable'}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.active ? '#22c55e' : 'var(--rd-muted)', fontSize: '0.875rem', padding: 4 }}>
-                            <i className={`fas fa-${c.active ? 'toggle-on' : 'toggle-off'}`} />
+                            style={{ padding: '4px 8px', borderRadius: 5, border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.04em', background: c.active ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.06)', color: c.active ? '#22c55e' : 'var(--rd-muted)' }}>
+                            {togglingId === c._id ? '…' : c.active ? 'DISABLE' : 'ENABLE'}
                           </button>
                           {/* Edit */}
                           <button
                             onClick={() => setModal(c)}
                             title="Edit"
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--rd-blue)', fontSize: '0.8rem', padding: 4 }}>
-                            <i className="fas fa-pen" />
+                            style={{ padding: '4px 8px', borderRadius: 5, border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.04em', background: 'rgba(0,102,255,0.12)', color: 'var(--rd-blue)' }}>
+                            EDIT
                           </button>
                           {/* Delete */}
                           <button
                             onClick={() => handleDelete(c._id)}
                             disabled={deletingId === c._id}
                             title="Delete"
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ff6b6b', fontSize: '0.8rem', padding: 4 }}>
-                            <i className="fas fa-trash" />
+                            style={{ padding: '4px 8px', borderRadius: 5, border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.04em', background: 'rgba(255,107,107,0.12)', color: '#ff6b6b' }}>
+                            {deletingId === c._id ? '…' : 'DELETE'}
                           </button>
                         </div>
                       </td>
