@@ -100,7 +100,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
     setCouponError('');
     setCouponData(null);
     try {
-      const res = await api.post('/api/coupons/validate', {
+      const res = await api.post('/coupons/validate', {
         code: couponCode.trim(),
         cartTotal: subtotal,
         cartItems: cart.map(i => ({ productId: i._id || i.id, quantity: i.quantity, price: i.price })),
