@@ -1,6 +1,4 @@
 // frontend/src/components/admin/AdminLayout.jsx
-// Changes from original:
-//   - ✅ Added Coupons nav item to NAV array
 
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -11,7 +9,6 @@ const NAV = [
   { to: '/admin/orders', label: 'Orders', icon: 'fa-box' },
   { to: '/admin/products', label: 'Products', icon: 'fa-shirt' },
   { to: '/admin/users', label: 'Customers', icon: 'fa-users' },
-  // ✅ Added: Coupon management nav link
   { to: '/admin/coupons', label: 'Coupons', icon: 'fa-tag' },
 ];
 
@@ -20,8 +17,6 @@ export default function AdminLayout({ children, title }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
-
-  const isActive = (to, exact) => exact ? location.pathname === to : location.pathname.startsWith(to) && to !== '/admin';
 
   return (
     <div className="admin-layout">
@@ -56,9 +51,23 @@ export default function AdminLayout({ children, title }) {
         )}
 
         <nav style={{ flex: 1, padding: '1rem 0.75rem' }}>
-          {!collapsed && <div style={{ fontSize: '0.65rem', letterSpacing: '0.15em', color: 'var(--rd-muted)', padding: '0 0.5rem', marginBottom: '0.5rem' }}>NAVIGATION</div>}
+          {!collapsed && (
+            <div style={{ fontSize: '0.65rem', letterSpacing: '0.15em', color: 'var(--rd-muted)', padding: '0 0.5rem', marginBottom: '0.5rem' }}>
+              NAVIGATION
+            </div>
+          )}
           {NAV.map(item => (
-            <Link key={item.to} to={item.to} className={`admin-nav-item ${(item.exact ? location.pathname === item.to : location.pathname === item.to || location.pathname.startsWith(item.to + '/')) ? 'active' : ''}`} style={{ borderLeft: 'none', borderRadius: '8px', marginBottom: '0.25rem', justifyContent: collapsed ? 'center' : 'flex-start' }}>
+            <Link
+              key={item.to}
+              to={item.to}
+              className={`admin-nav-item ${
+                (item.exact
+                  ? location.pathname === item.to
+                  : location.pathname === item.to || location.pathname.startsWith(item.to + '/'))
+                  ? 'active' : ''
+              }`}
+              style={{ borderLeft: 'none', borderRadius: '8px', marginBottom: '0.25rem', justifyContent: collapsed ? 'center' : 'flex-start' }}
+            >
               <i className={`fas ${item.icon}`} style={{ width: collapsed ? 'auto' : 20, flexShrink: 0 }} />
               {!collapsed && item.label}
             </Link>
@@ -67,10 +76,16 @@ export default function AdminLayout({ children, title }) {
 
         <div style={{ padding: '1rem 0.75rem', borderTop: '1px solid var(--rd-border2)' }}>
           <Link to="/" className="admin-nav-item" style={{ borderLeft: 'none', borderRadius: '8px', marginBottom: '0.25rem', justifyContent: collapsed ? 'center' : 'flex-start' }}>
-            <i className="fas fa-store" style={{ width: collapsed ? 'auto' : 20 }} />{!collapsed && 'View Store'}
+            <i className="fas fa-store" style={{ width: collapsed ? 'auto' : 20 }} />
+            {!collapsed && 'View Store'}
           </Link>
-          <button onClick={() => { logout(); navigate('/login'); }} className="admin-nav-item" style={{ borderLeft: 'none', borderRadius: '8px', color: 'var(--rd-red)', width: '100%', justifyContent: collapsed ? 'center' : 'flex-start' }}>
-            <i className="fas fa-sign-out-alt" style={{ width: collapsed ? 'auto' : 20 }} />{!collapsed && 'Sign Out'}
+          <button
+            onClick={() => { logout(); navigate('/login'); }}
+            className="admin-nav-item"
+            style={{ borderLeft: 'none', borderRadius: '8px', color: 'var(--rd-red)', width: '100%', justifyContent: collapsed ? 'center' : 'flex-start' }}
+          >
+            <i className="fas fa-sign-out-alt" style={{ width: collapsed ? 'auto' : 20 }} />
+            {!collapsed && 'Sign Out'}
           </button>
         </div>
       </aside>
@@ -81,7 +96,9 @@ export default function AdminLayout({ children, title }) {
         <div style={{ padding: '1.25rem 2rem', borderBottom: '1px solid var(--rd-border2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#050810', position: 'sticky', top: 0, zIndex: 100 }}>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700, letterSpacing: '0.1em', color: 'white' }}>{title}</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--rd-muted)' }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--rd-muted)' }}>
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </span>
           </div>
         </div>
 
