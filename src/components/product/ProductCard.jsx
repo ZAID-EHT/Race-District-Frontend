@@ -56,6 +56,21 @@ const ProductCard = ({ product }) => {
         <p className="text-gray-400 text-sm mb-4 line-clamp-2">
           {product.shortDescription || product.description}
         </p>
+        {product.price && (
+          <div className="koko-banner">
+            or pay in 3 x <b>LKR {(product.price / 3).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b> with{' '}
+            <a href="https://paykoko.com/customer-education" target="_blank" rel="noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <img src="https://paykoko.com/img/logo1.7ff549c0.png" alt="Koko"
+                style={{ height: '20px', width: 'auto', position: 'relative', top: '1px' }} />
+            </a>
+            <a href="https://paykoko.com/customer-education" target="_blank" rel="noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <img src="https://koko-merchant.oss-ap-southeast-1.aliyuncs.com/bnpl-site-cms-dev/koko-images/info.png"
+                alt="info" style={{ height: '12px', width: 'auto' }} />
+            </a>
+          </div>
+        )}
         <button
           onClick={handleAddToCart}
           className="w-full py-2 border border-rd-blue/30 text-rd-blue hover:bg-rd-blue hover:text-white transition-all duration-300 font-medium rounded"

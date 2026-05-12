@@ -50,7 +50,7 @@ function ProductCard({ product }) {
           </div>
         )}
       </div>
-      <div style={{ padding: '1.5rem' }}>
+      <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
           <h3 className="font-orbitron" style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-primary)', flex: 1, marginRight: '0.5rem' }}>
             {product.name}
@@ -59,9 +59,24 @@ function ProductCard({ product }) {
             LKR {product.price?.toLocaleString()}
           </span>
         </div>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem' }}>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem', flex: 1 }}>
           {product.shortDescription || product.description}
         </p>
+        {product.price && (
+          <div className="koko-banner">
+            or pay in 3 x <b>LKR {(product.price / 3).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b> with{' '}
+            <a href="https://paykoko.com/customer-education" target="_blank" rel="noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <img src="https://paykoko.com/img/logo1.7ff549c0.png" alt="Koko"
+                style={{ height: '20px', width: 'auto', position: 'relative', top: '1px' }} />
+            </a>
+            <a href="https://paykoko.com/customer-education" target="_blank" rel="noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <img src="https://koko-merchant.oss-ap-southeast-1.aliyuncs.com/bnpl-site-cms-dev/koko-images/info.png"
+                alt="info" style={{ height: '12px', width: 'auto' }} />
+            </a>
+          </div>
+        )}
         <button
           onClick={handleAdd}
           style={{

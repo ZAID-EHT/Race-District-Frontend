@@ -1,10 +1,19 @@
 // frontend/src/pages/Checkout.jsx
+// Changes from original:
+//   - Added coupon state: couponCode, couponData, couponError, couponLoading
+//   - Added handleApplyCoupon / handleRemoveCoupon handlers
+//   - Recalculate discount, shipping, total when couponData changes
+//   - Added coupon input UI block in DETAILS SCREEN (below delivery, above payment)
+//   - Added coupon discount row in totals (details + recap screens)
+//   - Pass couponCode + discount in orderPayload
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { orderAPI, fetchCSRFToken } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import api from '../services/api';
 
 const SHIPPING_OPTIONS = [
   { id: 'island_wide', name: 'Island-Wide Shipping', cost: 400, estimatedDays: 3, description: 'Delivery anywhere in Sri Lanka' },
@@ -40,6 +49,12 @@ export default function Checkout({ cartOpen, setCartOpen }) {
   const [placedOrder, setPlacedOrder] = useState(null);
   const [copiedField, setCopiedField] = useState(null);
 
+  // ── Coupon state ──
+  const [couponCode, setCouponCode] = useState('');
+  const [couponData, setCouponData] = useState(null);   // { discount, freeShipping, couponType }
+  const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+
   useEffect(() => {
     if (isAuthenticated && user) {
       const defaultAddr = user.addresses?.find(a => a.isDefault) || user.addresses?.[0];
@@ -67,14 +82,43 @@ export default function Checkout({ cartOpen, setCartOpen }) {
     }
   }, [isAuthenticated, user]);
 
-  // ✅ FIX 1: Scroll to top whenever step changes (details → recap → done)
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [step]);
 
-  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = shippingOption.cost; // always 400
-  const total = subtotal + shipping;
+  // ── Totals (coupon-aware) ──
+  const subtotal  = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  const discount  = couponData?.discount || 0;
+  const baseShipping = shippingOption.cost; // 400
+  const shipping  = couponData?.freeShipping ? 0 : baseShipping;
+  const total     = subtotal - discount + shipping;
+
+  // ── Coupon handlers ──
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setCouponLoading(true);
+    setCouponError('');
+    setCouponData(null);
+    try {
+      const res = await api.post('/api/coupons/validate', {
+        code: couponCode.trim(),
+        cartTotal: subtotal,
+        cartItems: cart.map(i => ({ productId: i._id || i.id, quantity: i.quantity, price: i.price })),
+      });
+      setCouponData(res.data);   // { discount, freeShipping, couponType }
+      addToast('Coupon applied!', 'success');
+    } catch (err) {
+      setCouponError(err?.response?.data?.message || 'Invalid or expired coupon');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponData(null);
+    setCouponCode('');
+    setCouponError('');
+  };
 
   const handleDetailsSubmit = (e) => {
     e.preventDefault();
@@ -87,7 +131,6 @@ export default function Checkout({ cartOpen, setCartOpen }) {
     try {
       await fetchCSRFToken(/* forceRefresh= */ true);
 
-      // ✅ FIX 2: Always send shippingCost as 400 — no overrides from backend's old 600 fee
       const orderPayload = {
         items: cart.map(i => ({
           productId: i._id || i.id,
@@ -109,15 +152,17 @@ export default function Checkout({ cartOpen, setCartOpen }) {
         shippingMethod: {
           id: shippingOption.id,
           name: shippingOption.name,
-          cost: 400, // ✅ always 400
+          cost: shipping,
           estimatedDays: shippingOption.estimatedDays,
         },
         payment: { method: paymentMethod },
         guestEmail: !isAuthenticated ? checkoutForm.email : undefined,
         subtotal,
-        shippingCost: 400, // ✅ always 400
+        discount,
+        couponCode: couponData ? couponCode.trim().toUpperCase() : null,
+        shippingCost: shipping,
         tax: 0,
-        total: subtotal + 400, // ✅ recalculate with fixed 400
+        total,
       };
 
       let res;
@@ -127,7 +172,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
         res = await orderAPI.createGuest(orderPayload);
       }
 
-      // ✅ Koko branch: backend returns kokoParams — build a hidden form and submit
+      // Koko branch
       if (paymentMethod === 'koko') {
         const { kokoParams } = res.data;
         if (!kokoParams) {
@@ -135,16 +180,11 @@ export default function Checkout({ cartOpen, setCartOpen }) {
           setOrderLoading(false);
           return;
         }
-
-        // Clear cart now — order is pending, user is leaving the site
         clearCart();
-
-        // Build hidden form and submit to Koko's endpoint
         const { kokoEndpoint, ...formFields } = kokoParams;
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = kokoEndpoint;
-
         Object.entries(formFields).forEach(([key, value]) => {
           const input = document.createElement('input');
           input.type = 'hidden';
@@ -152,7 +192,6 @@ export default function Checkout({ cartOpen, setCartOpen }) {
           input.value = String(value);
           form.appendChild(input);
         });
-
         document.body.appendChild(form);
         form.submit();
         return;
@@ -184,7 +223,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
   };
   const labelStyle = { display: 'block', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' };
 
-  // ── ORDER COMPLETE SCREEN
+  // ── ORDER COMPLETE SCREEN ──────────────────────────────────────────────────
   if (step === 'done' && placedOrder) {
     const isBankTransfer = paymentMethod === 'bank_transfer';
     const isCOD = paymentMethod === 'cod';
@@ -274,14 +313,13 @@ export default function Checkout({ cartOpen, setCartOpen }) {
     );
   }
 
-  // ── ORDER RECAP SCREEN
+  // ── ORDER RECAP SCREEN ─────────────────────────────────────────────────────
   if (step === 'recap') {
     const paymentLabel =
       paymentMethod === 'cod'   ? 'Cash on Delivery'         :
       paymentMethod === 'koko'  ? 'Koko (Buy Now Pay Later)' :
                                   'Bank Transfer';
 
-    // ✅ FIX 3: Show "Placing order..." while loading, then payment-specific label
     const confirmLabel =
       orderLoading             ? 'PLACING ORDER...'   :
       paymentMethod === 'koko' ? 'PROCEED TO KOKO →'  :
@@ -301,7 +339,6 @@ export default function Checkout({ cartOpen, setCartOpen }) {
             REVIEW <span style={{ color: '#0066FF' }}>ORDER</span>
           </h2>
 
-          {/* ✅ FIX 4: Order items always visible on recap — cart is read from state, not cleared yet */}
           <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '1.5rem' }}>
             <h4 className="font-orbitron" style={{ color: '#0066FF', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '1rem' }}>ORDER ITEMS</h4>
             {cart.map((item, i) => (
@@ -314,12 +351,18 @@ export default function Checkout({ cartOpen, setCartOpen }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9CA3AF', fontSize: '0.875rem' }}>
                 <span>Subtotal</span><span>LKR {subtotal.toLocaleString()}</span>
               </div>
+              {discount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10B981', fontSize: '0.875rem' }}>
+                  <span>Coupon ({couponCode.toUpperCase()})</span>
+                  <span>- LKR {discount.toLocaleString()}</span>
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9CA3AF', fontSize: '0.875rem' }}>
-                {/* ✅ FIX 5: Show fixed 400 — always */}
-                <span>Shipping ({shippingOption.name})</span><span>LKR 400</span>
+                <span>Shipping ({shippingOption.name})</span>
+                <span>{couponData?.freeShipping ? <span style={{ color: '#10B981' }}>FREE</span> : `LKR ${shipping}`}</span>
               </div>
               <div className="co-total-row" style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.125rem', paddingTop: '0.5rem', borderTop: '1px solid var(--co-divider, #1F2937)' }}>
-                <span>Total</span><span style={{ color: '#0066FF' }}>LKR {(subtotal + 400).toLocaleString()}</span>
+                <span>Total</span><span style={{ color: '#0066FF' }}>LKR {total.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -363,7 +406,7 @@ export default function Checkout({ cartOpen, setCartOpen }) {
     );
   }
 
-  // ── DETAILS SCREEN
+  // ── DETAILS SCREEN ─────────────────────────────────────────────────────────
   return (
     <div className="page-fade" style={{ paddingTop: '5rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
       <style>{`
@@ -397,6 +440,9 @@ export default function Checkout({ cartOpen, setCartOpen }) {
           .checkout-city-row { grid-template-columns: 1fr !important; }
           .checkout-summary-panel { order: 2; }
           .checkout-form-panel { order: 1; }
+          .coupon-row { flex-direction: column !important; }
+          .coupon-row input { width: 100% !important; }
+          .coupon-row button { width: 100% !important; }
         }
       `}</style>
 
@@ -440,16 +486,23 @@ export default function Checkout({ cartOpen, setCartOpen }) {
               }
             </div>
 
-            {/* Totals — always show 400 */}
+            {/* Totals */}
             <div style={{ borderTop: '1px solid #1F2937', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9CA3AF', fontSize: '0.875rem' }}>
                 <span>Subtotal</span><span>LKR {subtotal.toLocaleString()}</span>
               </div>
+              {discount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10B981', fontSize: '0.875rem' }}>
+                  <span>Coupon ({couponCode.toUpperCase()})</span>
+                  <span>- LKR {discount.toLocaleString()}</span>
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9CA3AF', fontSize: '0.875rem' }}>
-                <span>Shipping</span><span>LKR 400</span>
+                <span>Shipping</span>
+                <span>{couponData?.freeShipping ? <span style={{ color: '#10B981' }}>FREE</span> : `LKR ${shipping}`}</span>
               </div>
               <div className="co-total-row" style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.25rem', paddingTop: '0.5rem', borderTop: '1px solid var(--co-divider, #1F2937)' }}>
-                <span>Total</span><span style={{ color: '#0066FF' }}>LKR {(subtotal + 400).toLocaleString()}</span>
+                <span>Total</span><span style={{ color: '#0066FF' }}>LKR {total.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -514,6 +567,56 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                   </div>
                   <span style={{ color: '#0066FF', fontWeight: 700, fontSize: '0.875rem', flexShrink: 0 }}>LKR 400</span>
                 </div>
+              </div>
+
+              {/* ── COUPON INPUT ── */}
+              <div>
+                <label style={{ ...labelStyle, marginBottom: '0.75rem' }}>Coupon Code</label>
+                {couponData ? (
+                  // Applied state
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.4)', borderRadius: '0.375rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '1rem' }}>🏷️</span>
+                      <div>
+                        <div style={{ color: '#10B981', fontWeight: 700, fontSize: '0.875rem' }}>{couponCode.toUpperCase()} applied</div>
+                        <div className="co-muted" style={{ fontSize: '0.75rem' }}>
+                          {couponData.freeShipping ? 'Free shipping!' : `Save LKR ${couponData.discount.toLocaleString()}`}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1 }}
+                      title="Remove coupon"
+                    >✕</button>
+                  </div>
+                ) : (
+                  // Input state
+                  <>
+                    <div className="coupon-row" style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input
+                        type="text"
+                        style={{ ...inputStyle, textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                        placeholder="ENTER CODE"
+                        value={couponCode}
+                        onChange={e => { setCouponCode(e.target.value); setCouponError(''); }}
+                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleApplyCoupon())}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        disabled={couponLoading || !couponCode.trim()}
+                        style={{ padding: '0.75rem 1.25rem', background: couponLoading ? 'rgba(0,102,255,0.4)' : '#0066FF', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: couponLoading || !couponCode.trim() ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: '0.875rem', whiteSpace: 'nowrap', transition: 'all 0.2s', opacity: !couponCode.trim() ? 0.5 : 1 }}
+                      >
+                        {couponLoading ? '...' : 'APPLY'}
+                      </button>
+                    </div>
+                    {couponError && (
+                      <p style={{ color: '#EF4444', fontSize: '0.8rem', marginTop: '0.4rem' }}>⚠ {couponError}</p>
+                    )}
+                  </>
+                )}
               </div>
 
               {/* Payment Methods */}

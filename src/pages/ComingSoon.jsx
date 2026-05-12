@@ -196,7 +196,7 @@ export default function ComingSoon() {
         <div className="cs-title-block cs-title-block--center">
           <span className="cs-race-font cs-race">RACE</span>
           <span className="cs-race-font cs-district">DISTRICT</span>
-          <div className="cs-eco-row cs-eco-row--center">
+          <div className="cs-eco-row">
             <span className="cs-race-font cs-eco">ECO</span>
             <LeafSVG
               width={96} height={96}
@@ -423,7 +423,7 @@ export default function ComingSoon() {
           align-items: flex-start;
         }
         .cs-title-block--center {
-          align-items: center;
+          align-items: flex-start;
         }
 
         /* ── Responsive breakpoint ── */

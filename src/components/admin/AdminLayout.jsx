@@ -1,3 +1,7 @@
+// frontend/src/components/admin/AdminLayout.jsx
+// Changes from original:
+//   - ✅ Added Coupons nav item to NAV array
+
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -6,7 +10,9 @@ const NAV = [
   { to: '/admin', label: 'Dashboard', icon: 'fa-chart-line', exact: true },
   { to: '/admin/orders', label: 'Orders', icon: 'fa-box' },
   { to: '/admin/products', label: 'Products', icon: 'fa-shirt' },
-  { to: '/admin/users', label: 'Customers', icon: 'fa-users' }
+  { to: '/admin/users', label: 'Customers', icon: 'fa-users' },
+  // ✅ Added: Coupon management nav link
+  { to: '/admin/coupons', label: 'Coupons', icon: 'fa-tag' },
 ];
 
 export default function AdminLayout({ children, title }) {

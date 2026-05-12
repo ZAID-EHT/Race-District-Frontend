@@ -113,12 +113,12 @@ const ProductDetail = () => {
               position: 'relative', borderRadius: '1rem', overflow: 'hidden',
               background: 'linear-gradient(135deg, #1F2937, #111827)',
               border: '1px solid rgba(59,130,246,0.15)',
-              aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center'
+              maxHeight: '520px', height: '520px', display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
               <div style={{ position: 'absolute', top: '30%', left: '30%', width: '40%', height: '40%', background: '#0066FF', borderRadius: '50%', filter: 'blur(80px)', opacity: 0.08, pointerEvents: 'none' }} />
               {images.length > 0 ? (
                 <img src={images[activeImage]?.url || images[0]?.url} alt={images[activeImage]?.alt || product.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 0.3s' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', transition: 'opacity 0.3s' }}
                   onError={e => { e.target.style.display = 'none'; }} />
               ) : (
                 <span style={{ fontSize: '8rem' }}>{product.emoji || '📦'}</span>
@@ -165,10 +165,27 @@ const ProductDetail = () => {
             </div>
 
             {/* Price */}
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-              <span className="font-orbitron" style={{ fontSize: '2.25rem', fontWeight: 900, color: '#0066FF' }}>
-                LKR {product.price?.toLocaleString()}
-              </span>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+                <span className="font-orbitron" style={{ fontSize: '2.25rem', fontWeight: 900, color: '#0066FF' }}>
+                  LKR {product.price?.toLocaleString()}
+                </span>
+              </div>
+              {product.price && (
+                <div className="koko-banner" style={{ marginTop: '8px' }}>
+                  or pay in 3 x <b>LKR {(product.price / 3).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b> with{' '}
+                  <a href="https://paykoko.com/customer-education" target="_blank" rel="noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <img src="https://paykoko.com/img/logo1.7ff549c0.png" alt="Koko"
+                      style={{ height: '26px', width: 'auto', position: 'relative', top: '1px' }} />
+                  </a>
+                  <a href="https://paykoko.com/customer-education" target="_blank" rel="noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <img src="https://koko-merchant.oss-ap-southeast-1.aliyuncs.com/bnpl-site-cms-dev/koko-images/info.png"
+                      alt="info" style={{ height: '14px', width: 'auto' }} />
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* ── MOBILE Add-to-Cart (right after price) ── */}

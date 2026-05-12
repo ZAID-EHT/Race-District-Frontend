@@ -1,3 +1,9 @@
+// frontend/src/App.jsx
+// Changes from original:
+//   - import KokoReturn
+//   - ✅ import AdminCoupons
+//   - Added <Route path="/admin/coupons" element={<AdminCoupons />} />
+
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -20,6 +26,9 @@ import AdminDashboard from './pages/admin/Dashboard';
 import { AdminOrders, AdminProducts } from './pages/admin/AdminPages';
 import AdminCustomers from './pages/admin/Customers';
 import ScrollToTop from './components/common/ScrollToTop';
+import KokoReturn from './pages/KokoReturn';
+// ✅ Added: Admin coupon management page
+import AdminCoupons from './pages/admin/Coupons';
 
 import './styles/globals.css';
 
@@ -28,11 +37,9 @@ function CustomCursor() {
   const cursorRef = React.useRef(null);
   const followerRef = React.useRef(null);
 
-  // Returns the right colour for the current theme
   const getCursorColor = () =>
     document.body.classList.contains('light-mode') ? '#0d2a8a' : '#0066FF';
 
-  // Apply theme colour to both cursor elements
   const applyColor = () => {
     const color = getCursorColor();
     if (cursorRef.current)   cursorRef.current.style.borderColor   = color;
@@ -40,10 +47,9 @@ function CustomCursor() {
   };
 
   useEffect(() => {
-    // Watch for light-mode class toggled on <body>
     const observer = new MutationObserver(applyColor);
     observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-    applyColor(); // set correct colour on first render
+    applyColor();
     return () => observer.disconnect();
   }, []);
 
@@ -113,19 +119,12 @@ function AdminRoute({ children }) {
   return children;
 }
 
-/*
-  StoreLayout — owns cartOpen state and renders CartDrawer alongside Header.
-  NO more cloneElement. CartDrawer also listens to the 'rd:open-cart' window
-  event, so both the desktop button (Header) and mobile button fire the same
-  event and the drawer always opens correctly.
-*/
 function StoreLayout({ children }) {
   const [cartOpen, setCartOpen] = useState(false);
 
   return (
     <>
       <Header cartOpen={cartOpen} setCartOpen={setCartOpen} />
-      {/* CartDrawer lives here — same level as Header, shares state */}
       <CartDrawer cartOpen={cartOpen} setCartOpen={setCartOpen} />
       {children}
       <Footer />
@@ -142,10 +141,7 @@ function AppRoutes() {
         <Route path="/" element={<StoreLayout><Home /></StoreLayout>} />
         <Route path="/shop" element={<StoreLayout><Products /></StoreLayout>} />
         <Route path="/products" element={<StoreLayout><Products /></StoreLayout>} />
-
-        {/* ✅ FIX: Product detail route — matches /products/:id links in ProductCard & Home */}
         <Route path="/products/:id" element={<StoreLayout><ProductDetail /></StoreLayout>} />
-
         <Route path="/about" element={<StoreLayout><About /></StoreLayout>} />
         <Route path="/login" element={<Login />} />
         <Route path="/track-order" element={<StoreLayout><TrackOrder /></StoreLayout>} />
@@ -153,12 +149,16 @@ function AppRoutes() {
         <Route path="/account" element={<ProtectedRoute><StoreLayout><Account /></StoreLayout></ProtectedRoute>} />
         <Route path="/account/:tab" element={<ProtectedRoute><StoreLayout><Account /></StoreLayout></ProtectedRoute>} />
         <Route path="/checkout" element={<StoreLayout><Checkout /></StoreLayout>} />
+        <Route path="/checkout/koko-return" element={<StoreLayout><KokoReturn /></StoreLayout>} />
+        <Route path="/checkout/koko-cancel" element={<StoreLayout><KokoReturn /></StoreLayout>} />
 
         {/* Admin pages */}
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
         <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
         <Route path="/admin/users" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
+        {/* ✅ Coupon management */}
+        <Route path="/admin/coupons" element={<AdminRoute><AdminCoupons /></AdminRoute>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

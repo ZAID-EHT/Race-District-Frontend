@@ -79,12 +79,27 @@ export function ProductCard({ product, featured = false }) {
         }
         <div className="rd-card-overlay" style={{ opacity: hovered ? 1 : 0 }} />
       </div>
-      <div className="rd-card-body">
+      <div className="rd-card-body" style={{ display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.35rem' }}>
           <h3 className="rd-card-title">{product.name}</h3>
           <span className="rd-card-price">LKR {product.price?.toLocaleString()}</span>
         </div>
-        <p className="rd-card-desc">{product.shortDescription || product.description}</p>
+        <p className="rd-card-desc" style={{ flex: 1 }}>{product.shortDescription || product.description}</p>
+        {product.price && (
+          <div className="koko-banner">
+            or pay in 3 x <b>LKR {(product.price / 3).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b> with{' '}
+            <a href="https://paykoko.com/customer-education" target="_blank" rel="noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <img src="https://paykoko.com/img/logo1.7ff549c0.png" alt="Koko"
+                style={{ height: '20px', width: 'auto', position: 'relative', top: '1px' }} />
+            </a>
+            <a href="https://paykoko.com/customer-education" target="_blank" rel="noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <img src="https://koko-merchant.oss-ap-southeast-1.aliyuncs.com/bnpl-site-cms-dev/koko-images/info.png"
+                alt="info" style={{ height: '12px', width: 'auto' }} />
+            </a>
+          </div>
+        )}
         <button className={`rd-card-btn ${added ? 'rd-card-btn--added' : ''}`} onClick={handleAdd}>
           {added ? '✓ Added' : 'Add to Garage'}
         </button>
