@@ -31,9 +31,9 @@ function CouponModal({ coupon, onClose, onSaved }) {
     setLoading(true); setError('');
     try {
       if (coupon?._id) {
-        await api.put(`/api/admin/coupons/${coupon._id}`, form);
+        await api.put(`/admin/coupons/${coupon._id}`, form);
       } else {
-        await api.post('/api/admin/coupons', form);
+        await api.post('/admin/coupons', form);
       }
       onSaved();
     } catch (err) {
@@ -197,8 +197,8 @@ export default function AdminCoupons() {
       if (filter === 'inactive') params.set('active', 'false');
 
       const [couponRes, analyticsRes] = await Promise.all([
-        api.get(`/api/admin/coupons?${params}`),
-        api.get('/api/admin/coupons/analytics'),
+        api.get(`/admin/coupons?${params}`),
+        api.get('/admin/coupons/analytics'),
       ]);
 
       let list = couponRes.data.coupons || couponRes.data;
@@ -221,7 +221,7 @@ export default function AdminCoupons() {
   const handleToggle = async (coupon) => {
     setTogglingId(coupon._id);
     try {
-      await api.put(`/api/admin/coupons/${coupon._id}/${coupon.active ? 'disable' : 'enable'}`);
+      await api.put(`/admin/coupons/${coupon._id}/${coupon.active ? 'disable' : 'enable'}`);
       setCoupons(cs => cs.map(c => c._id === coupon._id ? { ...c, active: !c.active } : c));
     } catch {}
     finally { setTogglingId(null); }
@@ -231,7 +231,7 @@ export default function AdminCoupons() {
     if (!window.confirm('Delete this coupon? This cannot be undone.')) return;
     setDeletingId(id);
     try {
-      await api.delete(`/api/admin/coupons/${id}`);
+      await api.delete(`/admin/coupons/${id}`);
       setCoupons(cs => cs.filter(c => c._id !== id));
     } catch (err) {
       alert(err?.response?.data?.message || 'Delete failed');
