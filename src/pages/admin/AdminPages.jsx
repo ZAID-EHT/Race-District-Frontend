@@ -200,6 +200,7 @@ const GLOBAL_CSS = `
       border-bottom: 1px solid var(--border-color) !important;
       padding: 0.625rem 0.75rem !important;
     }
+    .dash-growth-row > div:last-child { border-bottom: none; }
     .dash-recent-table .col-items,
     .dash-recent-table .col-date { display: none !important; }
 
@@ -314,6 +315,7 @@ const NAV_ITEMS = [
   { to:'/admin/orders',   label:'Orders',    icon:'📦' },
   { to:'/admin/products', label:'Products',  icon:'🏎️' },
   { to:'/admin/users',    label:'Customers', icon:'👥' },
+  { to:'/admin/coupons',  label:'Coupons',   icon:'🏷️' },
 ];
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -325,7 +327,7 @@ export function AdminLayout({ children, title }) {
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const isActive = (to, exact) => exact ? location.pathname === to : location.pathname === to;
+  const isActive = (to, exact) => exact ? location.pathname === to : location.pathname.startsWith(to);
 
   // Close sidebar on route change
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
