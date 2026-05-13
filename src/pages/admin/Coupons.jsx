@@ -10,7 +10,7 @@ const EMPTY_FORM = {
   maxDiscount: '', usageLimit: '', perUserLimit: 1,
   startDate: new Date().toISOString().split('T')[0],
   expiryDate: '', active: true, firstOrderOnly: false,
-  freeShipping: false, stackable: false, autoApply: false,
+  freeShipping: false, stackable: false, autoApply: false, membersOnly: false,
 };
 
 const formatDate = (d) =>
@@ -173,7 +173,7 @@ function CouponModal({ coupon, onClose, onSaved }) {
         </div>
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', marginBottom: '1.75rem', paddingTop: '0.25rem' }}>
-          {[['active','Active'],['firstOrderOnly','First Order Only'],['freeShipping','Free Shipping'],['stackable','Stackable'],['autoApply','Auto Apply']].map(([key, label]) => (
+          {[['active','Active'],['firstOrderOnly','First Order Only'],['freeShipping','Free Shipping'],['stackable','Stackable'],['autoApply','Auto Apply'],['membersOnly','Members Only']].map(([key, label]) => (
             <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)', userSelect: 'none' }}>
               <input type="checkbox" checked={!!form[key]} onChange={e => set(key, e.target.checked)}
                 style={{ accentColor: '#0057ff', width: 15, height: 15, cursor: 'pointer' }} />
@@ -209,6 +209,7 @@ export default function AdminCoupons() {
   const [deletingId, setDeletingId] = useState(null);
   const [page,       setPage]       = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [stats,      setStats]      = useState({ total: 0, active: 0, expired: 0, totalDiscount: 0, ordersWithCoupons: 0 });
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -218,7 +219,11 @@ export default function AdminCoupons() {
       if (filter === 'active')   params.set('active', 'true');
       if (filter === 'inactive') params.set('active', 'false');
 
-      const res = await api.get(`/admin/coupons?${params}`);
+      const [res, analyticsRes] = await Promise.all([
+        api.get(`/admin/coupons?${params}`),
+        api.get('/admin/coupons/analytics').catch(() => ({ data: null })),
+      ]);
+
       let list = res.data.coupons || res.data;
 
       if (filter === 'expired') {
@@ -227,6 +232,21 @@ export default function AdminCoupons() {
       }
       setCoupons(list);
       setTotalPages(res.data.pages || 1);
+
+      // compute stats from list if analytics endpoint unavailable
+      if (analyticsRes.data) {
+        setStats(analyticsRes.data);
+      } else {
+        const all = res.data.coupons || res.data;
+        const now = new Date();
+        setStats({
+          total:            res.data.total || all.length,
+          active:           all.filter(c => c.active && new Date(c.expiryDate) >= now).length,
+          expired:          all.filter(c => new Date(c.expiryDate) < now).length,
+          totalDiscount:    all.reduce((s, c) => s + (c.totalDiscount || 0), 0),
+          ordersWithCoupons:all.reduce((s, c) => s + (c.usedCount || 0), 0),
+        });
+      }
     } catch {
       setError('Failed to load coupons');
     } finally { setLoading(false); }
@@ -285,6 +305,33 @@ export default function AdminCoupons() {
 
   return (
     <AdminLayout title="COUPON MANAGEMENT">
+
+      {/* ══ STATS CARDS ══ */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem', marginBottom: '1.75rem' }}>
+        {[
+          { label: 'Total Discount',      value: `LKR ${Number(stats.totalDiscount || 0).toLocaleString()}`, color: '#22c55e', bar: 'linear-gradient(90deg,#10B981,#6EE7B7)' },
+          { label: 'Orders w/ Coupons',   value: stats.ordersWithCoupons || 0,                               color: '#0057ff', bar: 'linear-gradient(90deg,#0066FF,#00CCFF)' },
+          { label: 'Total Coupons',        value: stats.total || 0,                                           color: '#a78bfa', bar: 'linear-gradient(90deg,#8B5CF6,#C4B5FD)' },
+          { label: 'Active',              value: stats.active || 0,                                           color: '#34d399', bar: 'linear-gradient(90deg,#10B981,#6EE7B7)' },
+          { label: 'Expired',             value: stats.expired || 0,                                          color: '#f87171', bar: 'linear-gradient(90deg,#EF4444,#FCA5A5)' },
+        ].map(({ label, value, color, bar }) => (
+          <div key={label} style={{
+            background: 'var(--bg-secondary, rgba(255,255,255,0.03))',
+            border: '1px solid var(--border-color, rgba(255,255,255,0.07))',
+            borderRadius: 10, padding: '1.1rem 1.25rem',
+            position: 'relative', overflow: 'hidden',
+          }}>
+            {/* top colour bar */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: bar }} />
+            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted, rgba(255,255,255,0.35))', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>
+              {label}
+            </div>
+            <div style={{ fontSize: '1.35rem', fontWeight: 800, color, fontFamily: 'monospace', letterSpacing: '0.02em' }}>
+              {value}
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* ══ TOP BAR: Search + Add Button — matches Products exactly ══ */}
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -439,6 +486,7 @@ export default function AdminCoupons() {
                         {c.freeShipping && <Badge text="Free Ship" color="#14b8a6" />}
                         {c.firstOrderOnly && <Badge text="1st Order" color="#a855f7" />}
                         {c.stackable    && <Badge text="Stackable" color="#f97316" />}
+                        {c.membersOnly  && <Badge text="Members Only" color="#06b6d4" />}
                       </div>
                     </td>
 
@@ -497,4 +545,42 @@ export default function AdminCoupons() {
               })}
             </tbody>
           </table>
-        </div
+        </div>
+
+        {/* Footer: "N coupons shown" — identical to Products */}
+        {!loading && (
+          <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>
+              {coupons.length} coupon{coupons.length !== 1 ? 's' : ''} shown
+            </span>
+
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', gap: '0.35rem' }}>
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                  style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, opacity: page === 1 ? 0.35 : 1 }}>←</button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button key={p} onClick={() => setPage(p)}
+                    style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: `1px solid ${p === page ? '#0057ff' : 'rgba(255,255,255,0.1)'}`, background: p === page ? 'rgba(0,87,255,0.15)' : 'transparent', color: p === page ? '#4d8fff' : 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
+                    {p}
+                  </button>
+                ))}
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                  style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, opacity: page === totalPages ? 0.35 : 1 }}>→</button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ══ MODAL ══ */}
+      {modal && (
+        <CouponModal
+          coupon={modal === 'create' ? null : modal}
+          onClose={() => setModal(null)}
+          onSaved={() => { setModal(null); load(); }}
+        />
+      )}
+
+    </AdminLayout>
+  );
+}
