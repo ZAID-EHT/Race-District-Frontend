@@ -10,7 +10,7 @@ const EMPTY_FORM = {
   maxDiscount: '', usageLimit: '', perUserLimit: 1,
   startDate: new Date().toISOString().split('T')[0],
   expiryDate: '', active: true, firstOrderOnly: false,
-  freeShipping: false, stackable: false, autoApply: false, membersOnly: false,
+  freeShipping: false, stackable: false, autoApply: false,
 };
 
 const formatDate = (d) =>
@@ -173,7 +173,7 @@ function CouponModal({ coupon, onClose, onSaved }) {
         </div>
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', marginBottom: '1.75rem', paddingTop: '0.25rem' }}>
-          {[['active','Active'],['firstOrderOnly','First Order Only'],['freeShipping','Free Shipping'],['stackable','Stackable'],['autoApply','Auto Apply'],['membersOnly','Members Only']].map(([key, label]) => (
+          {[['active','Active'],['firstOrderOnly','First Order Only'],['freeShipping','Free Shipping'],['stackable','Stackable'],['autoApply','Auto Apply']].map(([key, label]) => (
             <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)', userSelect: 'none' }}>
               <input type="checkbox" checked={!!form[key]} onChange={e => set(key, e.target.checked)}
                 style={{ accentColor: '#0057ff', width: 15, height: 15, cursor: 'pointer' }} />
@@ -439,7 +439,6 @@ export default function AdminCoupons() {
                         {c.freeShipping && <Badge text="Free Ship" color="#14b8a6" />}
                         {c.firstOrderOnly && <Badge text="1st Order" color="#a855f7" />}
                         {c.stackable    && <Badge text="Stackable" color="#f97316" />}
-                        {c.membersOnly  && <Badge text="Members Only" color="#06b6d4" />}
                       </div>
                     </td>
 
@@ -498,42 +497,4 @@ export default function AdminCoupons() {
               })}
             </tbody>
           </table>
-        </div>
-
-        {/* Footer: "N coupons shown" — identical to Products */}
-        {!loading && (
-          <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>
-              {coupons.length} coupon{coupons.length !== 1 ? 's' : ''} shown
-            </span>
-
-            {totalPages > 1 && (
-              <div style={{ display: 'flex', gap: '0.35rem' }}>
-                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                  style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, opacity: page === 1 ? 0.35 : 1 }}>←</button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                  <button key={p} onClick={() => setPage(p)}
-                    style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: `1px solid ${p === page ? '#0057ff' : 'rgba(255,255,255,0.1)'}`, background: p === page ? 'rgba(0,87,255,0.15)' : 'transparent', color: p === page ? '#4d8fff' : 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
-                    {p}
-                  </button>
-                ))}
-                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                  style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, opacity: page === totalPages ? 0.35 : 1 }}>→</button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ══ MODAL ══ */}
-      {modal && (
-        <CouponModal
-          coupon={modal === 'create' ? null : modal}
-          onClose={() => setModal(null)}
-          onSaved={() => { setModal(null); load(); }}
-        />
-      )}
-
-    </AdminLayout>
-  );
-}
+        </div
