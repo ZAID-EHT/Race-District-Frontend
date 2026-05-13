@@ -12,18 +12,37 @@ const NAV = [
   { to: '/admin/coupons', label: 'Coupons', icon: 'fa-tag' },
 ];
 
+const sidebarBase = {
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100vh',
+  position: 'sticky',
+  top: 0,
+  overflow: 'hidden',
+  flexShrink: 0,
+  transition: 'width 0.3s',
+};
+
 export default function AdminLayout({ children, title }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
 
+  const isActive = (item) =>
+    item.exact
+      ? location.pathname === item.to
+      : location.pathname === item.to || location.pathname.startsWith(item.to + '/');
+
   return (
-    <div className="admin-layout">
+    <div className="admin-layout" style={{ display: 'flex', minHeight: '100vh' }}>
       {/* Sidebar */}
-      <aside className="admin-sidebar" style={{ width: collapsed ? '64px' : '260px', transition: 'width 0.3s' }}>
+      <aside
+        className="admin-sidebar"
+        style={{ ...sidebarBase, width: collapsed ? '64px' : '260px' }}
+      >
         {/* Logo */}
-        <div style={{ padding: '1.5rem 1.25rem', borderBottom: '1px solid var(--rd-border2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '1.5rem 1.25rem', borderBottom: '1px solid var(--rd-border2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           {!collapsed && (
             <Link to="/" style={{ textDecoration: 'none' }}>
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '0.95rem', letterSpacing: '0.1em', color: 'white' }}>
@@ -36,8 +55,9 @@ export default function AdminLayout({ children, title }) {
           </button>
         </div>
 
+        {/* User info */}
         {!collapsed && (
-          <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--rd-border2)' }}>
+          <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--rd-border2)', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--rd-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.9rem', flexShrink: 0 }}>
                 {user?.name?.[0]?.toUpperCase()}
@@ -50,7 +70,8 @@ export default function AdminLayout({ children, title }) {
           </div>
         )}
 
-        <nav style={{ flex: 1, padding: '1rem 0.75rem' }}>
+        {/* Nav — scrollable with padding so last item is never hidden */}
+        <nav style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '1rem 0.75rem', paddingBottom: '1rem', paddingRight: '4px' }}>
           {!collapsed && (
             <div style={{ fontSize: '0.65rem', letterSpacing: '0.15em', color: 'var(--rd-muted)', padding: '0 0.5rem', marginBottom: '0.5rem' }}>
               NAVIGATION
@@ -60,12 +81,7 @@ export default function AdminLayout({ children, title }) {
             <Link
               key={item.to}
               to={item.to}
-              className={`admin-nav-item ${
-                (item.exact
-                  ? location.pathname === item.to
-                  : location.pathname === item.to || location.pathname.startsWith(item.to + '/'))
-                  ? 'active' : ''
-              }`}
+              className={`admin-nav-item${isActive(item) ? ' active' : ''}`}
               style={{ borderLeft: 'none', borderRadius: '8px', marginBottom: '0.25rem', justifyContent: collapsed ? 'center' : 'flex-start' }}
             >
               <i className={`fas ${item.icon}`} style={{ width: collapsed ? 'auto' : 20, flexShrink: 0 }} />
@@ -74,7 +90,8 @@ export default function AdminLayout({ children, title }) {
           ))}
         </nav>
 
-        <div style={{ padding: '1rem 0.75rem', borderTop: '1px solid var(--rd-border2)' }}>
+        {/* Bottom actions */}
+        <div style={{ padding: '1rem 0.75rem', borderTop: '1px solid var(--rd-border2)', flexShrink: 0 }}>
           <Link to="/" className="admin-nav-item" style={{ borderLeft: 'none', borderRadius: '8px', marginBottom: '0.25rem', justifyContent: collapsed ? 'center' : 'flex-start' }}>
             <i className="fas fa-store" style={{ width: collapsed ? 'auto' : 20 }} />
             {!collapsed && 'View Store'}
@@ -91,7 +108,7 @@ export default function AdminLayout({ children, title }) {
       </aside>
 
       {/* Content */}
-      <div className="admin-content">
+      <div className="admin-content" style={{ flex: 1, minWidth: 0 }}>
         {/* Top bar */}
         <div style={{ padding: '1.25rem 2rem', borderBottom: '1px solid var(--rd-border2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#050810', position: 'sticky', top: 0, zIndex: 100 }}>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700, letterSpacing: '0.1em', color: 'white' }}>{title}</h1>
