@@ -29,7 +29,12 @@ select.form-input option {
   background: #1a1a2e !important;
   color: #ffffff !important;
 }
+@media (max-width: 900px) {
+  .orders-status-bar { grid-template-columns: repeat(3, 1fr) !important; }
+}
 @media (max-width: 768px) {
+  .orders-status-bar { grid-template-columns: repeat(3, 1fr) !important; gap: 0.5rem !important; }
+  .orders-status-bar-card { padding: 0.6rem 0.5rem !important; }
   .orders-filter-bar { flex-direction: column !important; align-items: stretch !important; }
   .orders-filter-bar input { width: 100% !important; }
   .orders-status-pills { gap: 0.3rem !important; }
@@ -83,8 +88,20 @@ export default function AdminOrders() {
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [resendingId, setResendingId] = useState(null);
   const [toast, setToast] = useState(null);
-  const [statusCounts, setStatusCounts] = useState({});
-  const [countsLoading, setCountsLoading] = useState(true);
+  const [statusCounts, setStatusCounts] = useState(null);
+
+  const fetchStatusCounts = useCallback(async () => {
+    try {
+      const res = await adminAPI.getStats();
+      setStatusCounts(res.data.orderStatus || null);
+    } catch (e) { console.error('Stats fetch failed:', e); }
+  }, []);
+
+  useEffect(() => {
+    fetchStatusCounts();
+    const interval = setInterval(fetchStatusCounts, 30000);
+    return () => clearInterval(interval);
+  }, [fetchStatusCounts]);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -105,33 +122,6 @@ export default function AdminOrders() {
   }, [status, page, search]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
-
-  useEffect(() => {
-    const STATUSES = ['pending','confirmed','processing','packed','shipped','out_for_delivery','delivered','cancelled','returned'];
-    const fetchCounts = async () => {
-      setCountsLoading(true);
-      try {
-        const results = await Promise.all(
-          STATUSES.map(s =>
-            adminAPI.getOrders({ status: s, limit: 1, page: 1 })
-              .then(r => {
-                const p = r.data.pagination || {};
-                const count = p.total ?? p.count ?? p.totalOrders ?? 0;
-                return { key: s, count };
-              })
-              .catch(() => ({ key: s, count: 0 }))
-          )
-        );
-        const map = {};
-        results.forEach(r => { map[r.key] = r.count; });
-        setStatusCounts(map);
-      } catch { /* silent */ }
-      finally { setCountsLoading(false); }
-    };
-    fetchCounts();
-    const interval = setInterval(fetchCounts, 30000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleUpdate = async () => {
     if (!editOrder) return;
@@ -196,57 +186,83 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {/* Status Counts Bar */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', overflowX: 'auto', paddingBottom: 2 }}>
-        {[
+      {/* Status counts bar */}
+      {(() => {
+        const STATUS_BAR = [
           { key: 'pending',          label: 'Pending',          color: '#f59e0b' },
-          { key: 'confirmed',        label: 'Confirmed',        color: '#22c55e' },
-          { key: 'processing',       label: 'Processing',       color: '#0057ff' },
-          { key: 'packed',           label: 'Packed',           color: '#a855f7' },
-          { key: 'shipped',          label: 'Shipped',          color: '#06b6d4' },
+          { key: 'confirmed',        label: 'Confirmed',        color: '#3b82f6' },
+          { key: 'processing',       label: 'Processing',       color: '#8b5cf6' },
+          { key: 'packed',           label: 'Packed',           color: '#06b6d4' },
+          { key: 'shipped',          label: 'Shipped',          color: '#0057ff' },
           { key: 'out_for_delivery', label: 'Out for Delivery', color: '#f97316' },
-          { key: 'delivered',        label: 'Delivered',        color: '#14b8a6' },
+          { key: 'delivered',        label: 'Delivered',        color: '#10b981' },
           { key: 'cancelled',        label: 'Cancelled',        color: '#ef4444' },
           { key: 'returned',         label: 'Returned',         color: '#ec4899' },
-        ].map(s => (
+        ];
+        const getCount = (key) => {
+          if (!statusCounts) return null;
+          if (key === 'out_for_delivery') return statusCounts.outForDelivery ?? statusCounts.all?.out_for_delivery ?? 0;
+          if (key === 'packed') return statusCounts.all?.packed ?? 0;
+          return statusCounts[key] ?? statusCounts.all?.[key] ?? 0;
+        };
+        return (
           <div
-            key={s.key}
-            onClick={() => { setStatus(s.key); setPage(1); }}
+            className="orders-status-bar"
             style={{
-              flex: '1 1 0', minWidth: 82, cursor: 'pointer',
-              background: 'var(--rd-card)',
-              border: `1px solid ${status === s.key ? s.color : 'var(--rd-border2)'}`,
-              borderTop: `2px solid ${s.color}`,
-              borderRadius: 10,
-              padding: '0.55rem 0.65rem',
-              display: 'flex', flexDirection: 'column', gap: 3,
-              position: 'relative', overflow: 'hidden',
-              transition: 'border-color 0.15s',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(9, 1fr)',
+              gap: '0.75rem',
+              marginBottom: '1.25rem',
             }}
           >
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: status === s.key ? `${s.color}14` : `${s.color}07`,
-              pointerEvents: 'none',
-            }} />
-            <span style={{
-              fontSize: '0.5rem', fontWeight: 700,
-              color: 'var(--rd-muted)', letterSpacing: '0.1em',
-              textTransform: 'uppercase', whiteSpace: 'nowrap',
-              fontFamily: 'var(--font-display)',
-            }}>
-              {s.label}
-            </span>
-            <span style={{
-              fontSize: '1.15rem', fontWeight: 800,
-              color: countsLoading ? 'var(--rd-muted)' : s.color,
-              fontFamily: 'var(--font-display)', lineHeight: 1,
-            }}>
-              {countsLoading ? '–' : (statusCounts[s.key] ?? 0)}
-            </span>
+            {STATUS_BAR.map(({ key, label, color }) => {
+              const count = getCount(key);
+              const isActive = status === key;
+              return (
+                <div
+                  key={key}
+                  className="orders-status-bar-card"
+                  onClick={() => { setStatus(key); setPage(1); }}
+                  style={{
+                    background: isActive
+                      ? `rgba(${color.replace('#','').match(/.{2}/g).map(h=>parseInt(h,16)).join(',')}, 0.12)`
+                      : 'var(--rd-card)',
+                    border: `1px solid ${isActive ? color : 'var(--rd-border2)'}`,
+                    borderTop: `3px solid ${color}`,
+                    borderRadius: '10px',
+                    padding: '0.75rem 0.5rem',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    transition: 'all 0.18s ease',
+                    boxShadow: isActive ? `0 0 12px rgba(${color.replace('#','').match(/.{2}/g).map(h=>parseInt(h,16)).join(',')}, 0.18)` : 'none',
+                  }}
+                >
+                  <div style={{
+                    fontFamily: 'var(--font-display, Orbitron, sans-serif)',
+                    fontSize: '1.3rem',
+                    fontWeight: 700,
+                    color: count === null ? 'var(--rd-muted)' : color,
+                    lineHeight: 1,
+                    marginBottom: '0.4rem',
+                  }}>
+                    {count === null ? '–' : count}
+                  </div>
+                  <div style={{
+                    fontSize: '0.62rem',
+                    color: 'var(--rd-muted)',
+                    fontWeight: 600,
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    lineHeight: 1.2,
+                  }}>
+                    {label}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        ))}
-      </div>
+        );
+      })()}
 
       {/* Filters */}
       <div className="orders-filter-bar" style={{ background: 'var(--rd-card)', border: '1px solid var(--rd-border2)', borderRadius: '12px', padding: '1.25rem', marginBottom: '1.25rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
