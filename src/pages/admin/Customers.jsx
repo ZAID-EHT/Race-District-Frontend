@@ -98,7 +98,8 @@ export function AdminLayout({ children, title }) {
     { to: '/admin',          label: 'Dashboard', icon: '📊', exact: true },
     { to: '/admin/orders',   label: 'Orders',    icon: '📦' },
     { to: '/admin/products', label: 'Products',  icon: '🏎️' },
-    { to: '/admin/users',    label: 'Customers', icon: '👥' }
+    { to: '/admin/users',    label: 'Customers', icon: '👥' },
+    { to: '/admin/coupons',  label: 'Coupons',   icon: '🏷️' }
   ];
 
   const isActive = (to, exact) => exact ? location.pathname === to : location.pathname === to;
@@ -116,7 +117,7 @@ export function AdminLayout({ children, title }) {
         onClick={() => setSidebarOpen(false)}
       />
 
-      <aside className={`admin-sidebar ${sidebarOpen ? 'mob-open' : ''}`}>
+      <aside className={`admin-sidebar ${sidebarOpen ? 'mob-open' : ''}`} style={{ display: 'flex', flexDirection: 'column', height: '100vh', position: 'sticky', top: 0, overflow: 'hidden' }}>
         {/* Logo */}
         <div style={{ padding: '1.5rem 1.25rem', borderBottom: '1px solid var(--border-color)' }}>
           <Link to="/" style={{ textDecoration: 'none' }}>
@@ -141,7 +142,7 @@ export function AdminLayout({ children, title }) {
         </div>
 
         {/* Nav links */}
-        <nav style={{ flex: 1, padding: '0.75rem' }}>
+        <nav style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0.75rem' }}>
           {nav.map(item => (
             <Link key={item.to} to={item.to}
               className={`admin-nav-item ${isActive(item.to, item.exact) ? 'active' : ''}`}>
@@ -151,7 +152,7 @@ export function AdminLayout({ children, title }) {
         </nav>
 
         {/* Bottom links */}
-        <div style={{ padding: '0.75rem', borderTop: '1px solid var(--border-color)' }}>
+        <div style={{ padding: '0.75rem', borderTop: '1px solid var(--border-color)', flexShrink: 0 }}>
           <Link to="/" className="admin-nav-item">🏪 View Store</Link>
           <button onClick={() => { logout(); navigate('/login'); }}
             className="admin-nav-item"
