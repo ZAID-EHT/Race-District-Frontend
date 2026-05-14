@@ -83,6 +83,7 @@ export default function AdminOrders() {
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [resendingId, setResendingId] = useState(null);
   const [toast, setToast] = useState(null);
+  const [orderStats, setOrderStats] = useState({});
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -98,6 +99,17 @@ export default function AdminOrders() {
       const res = await adminAPI.getOrders(params);
       setOrders(res.data.orders || []);
       setPagination(res.data.pagination || {});
+
+      // Fetch stats for all statuses (fire-and-forget, won't break page if it fails)
+      try {
+        const allStatuses = ['pending','confirmed','processing','packed','shipped','out_for_delivery','delivered','cancelled','returned'];
+        const counts = {};
+        const allRes = await adminAPI.getOrders({ limit: 1000 });
+        const allOrders = allRes.data.orders || [];
+        allStatuses.forEach(s => { counts[s] = allOrders.filter(o => o.status === s).length; });
+        counts['all'] = allOrders.length;
+        setOrderStats(counts);
+      } catch { /* stats optional */ }
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   }, [status, page, search]);
@@ -166,6 +178,49 @@ export default function AdminOrders() {
           {toast.msg}
         </div>
       )}
+
+      {/* ── Status Stat Cards ── */}
+      {(() => {
+        const STAT_CARDS = [
+          { label: 'TOTAL',          key: 'all',              color: '#60A5FA' },
+          { label: 'PENDING',        key: 'pending',          color: '#f59e0b' },
+          { label: 'CONFIRMED',      key: 'confirmed',        color: '#0066FF' },
+          { label: 'PROCESSING',     key: 'processing',       color: '#a855f7' },
+          { label: 'PACKED',         key: 'packed',           color: '#14b8a6' },
+          { label: 'SHIPPED',        key: 'shipped',          color: '#06b6d4' },
+          { label: 'OUT FOR DEL.',   key: 'out_for_delivery', color: '#f97316' },
+          { label: 'DELIVERED',      key: 'delivered',        color: '#22c55e' },
+          { label: 'CANCELLED',      key: 'cancelled',        color: '#ef4444' },
+          { label: 'RETURNED',       key: 'returned',         color: '#ec4899' },
+        ];
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            {STAT_CARDS.map(s => (
+              <div
+                key={s.key}
+                onClick={() => { setStatus(s.key); setPage(1); }}
+                style={{
+                  background: 'var(--rd-card)',
+                  border: `1px solid ${status === s.key ? s.color : 'var(--rd-border2)'}`,
+                  borderTop: `2px solid ${s.color}`,
+                  borderRadius: 10,
+                  padding: '0.875rem 1rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  background: status === s.key ? `${s.color}11` : 'var(--rd-card)',
+                }}
+              >
+                <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.13em', color: 'var(--rd-muted)', fontFamily: 'var(--font-display)', marginBottom: '0.4rem' }}>
+                  {s.label}
+                </div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: s.color, fontFamily: 'var(--font-display)', lineHeight: 1 }}>
+                  {loading ? <span style={{ opacity: 0.3 }}>–</span> : (orderStats[s.key] ?? 0)}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* Filters */}
       <div className="orders-filter-bar" style={{ background: 'var(--rd-card)', border: '1px solid var(--rd-border2)', borderRadius: '12px', padding: '1.25rem', marginBottom: '1.25rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
