@@ -220,6 +220,7 @@ export default function AdminCoupons() {
   const [deletingId, setDeletingId] = useState(null);
   const [page,       setPage]       = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [stats,      setStats]      = useState({ totalDiscount: 0, ordersWithCoupons: 0, total: 0, active: 0, expired: 0 });
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -241,6 +242,20 @@ export default function AdminCoupons() {
 
       setCoupons(Array.isArray(list) ? list : []);
       setTotalPages(res.data.pages || 1);
+
+      // Compute stats from the full unfiltered list (fetch all for stats)
+      try {
+        const allRes = await api.get('/admin/coupons?limit=1000');
+        const allList = allRes.data.coupons || allRes.data || [];
+        if (Array.isArray(allList)) {
+          const now = new Date();
+          const activeCount  = allList.filter(c => c.active && new Date(c.expiryDate) >= now).length;
+          const expiredCount = allList.filter(c => new Date(c.expiryDate) < now).length;
+          const totalDiscount = allList.reduce((sum, c) => sum + (c.totalDiscountGiven || 0), 0);
+          const ordersWithCoupons = allList.reduce((sum, c) => sum + (c.usedCount || 0), 0);
+          setStats({ totalDiscount, ordersWithCoupons, total: allList.length, active: activeCount, expired: expiredCount });
+        }
+      } catch { /* stats are optional, don't break the page */ }
     } catch {
       setError('Failed to load coupons');
       setCoupons([]);
@@ -298,8 +313,36 @@ export default function AdminCoupons() {
     bogo:          '#ef4444',
   };
 
+  const STAT_CARDS = [
+    { label: 'TOTAL DISCOUNT',    value: `LKR  ${Number(stats.totalDiscount).toLocaleString()}`, color: '#22c55e' },
+    { label: 'ORDERS W/ COUPONS', value: stats.ordersWithCoupons,                                color: '#0066FF' },
+    { label: 'TOTAL COUPONS',     value: stats.total,                                            color: '#a855f7' },
+    { label: 'ACTIVE',            value: stats.active,                                           color: '#22c55e' },
+    { label: 'EXPIRED',           value: stats.expired,                                          color: '#ef4444' },
+  ];
+
   return (
     <AdminLayout title="COUPON MANAGEMENT">
+
+      {/* ── Stat Cards ── */}
+      <div className="dash-stats-grid" style={{ gridTemplateColumns: 'repeat(5,1fr)', marginBottom: '1.5rem' }}>
+        {STAT_CARDS.map(s => (
+          <div key={s.label} style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderTop: `2px solid ${s.color}`,
+            borderRadius: 10,
+            padding: '1rem 1.25rem',
+          }}>
+            <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.13em', color: 'var(--text-muted)', fontFamily: 'Orbitron, sans-serif', marginBottom: '0.5rem' }}>
+              {s.label}
+            </div>
+            <div className="dash-stat-value" style={{ fontSize: '1.5rem', fontWeight: 800, color: s.color, fontFamily: 'Orbitron, sans-serif', lineHeight: 1 }}>
+              {loading ? <span style={{ opacity: 0.35 }}>–</span> : s.value}
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* ── Search + Filters + Add Button ── */}
       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
