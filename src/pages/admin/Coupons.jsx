@@ -1,6 +1,6 @@
 // frontend/src/pages/admin/Coupons.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import AdminLayout from '../../components/admin/AdminLayout';
+import { AdminLayout } from '../admin/AdminPages';   // ← same layout as Orders/Customers
 import api from '../../services/api';
 
 const TYPES = ['percentage', 'fixed', 'free_shipping', 'first_order', 'product', 'category', 'user', 'referral', 'bogo'];
@@ -16,23 +16,23 @@ const EMPTY_FORM = {
 const formatDate = (d) =>
   new Date(d).toLocaleDateString('en-LK', { day: 'numeric', month: 'short', year: 'numeric' });
 
-/* ─── Ticket SVG icon (used in coupon rows, mirrors product thumbnail style) ─── */
-const CouponThumb = ({ type, value, couponType }) => {
+/* ─── Ticket SVG icon ─── */
+const CouponThumb = ({ value, couponType }) => {
   const colorMap = {
-    percentage:   '#22c55e',
-    fixed:        '#0057ff',
-    free_shipping:'#14b8a6',
-    first_order:  '#a855f7',
-    product:      '#f59e0b',
-    category:     '#f97316',
-    user:         '#06b6d4',
-    referral:     '#ec4899',
-    bogo:         '#ef4444',
+    percentage:    '#22c55e',
+    fixed:         '#0066FF',
+    free_shipping: '#14b8a6',
+    first_order:   '#a855f7',
+    product:       '#f59e0b',
+    category:      '#f97316',
+    user:          '#06b6d4',
+    referral:      '#ec4899',
+    bogo:          '#ef4444',
   };
-  const accent = colorMap[couponType] || '#0057ff';
-  const label  = couponType === 'percentage' ? `${value}%`
-               : couponType === 'free_shipping' ? 'FREE'
-               : couponType === 'fixed' ? `LKR ${value}`
+  const accent = colorMap[couponType] || '#0066FF';
+  const label  = couponType === 'percentage'    ? `${value}%`
+               : couponType === 'free_shipping'  ? 'FREE'
+               : couponType === 'fixed'          ? `LKR ${value}`
                : `${value}`;
 
   return (
@@ -55,7 +55,7 @@ const CouponThumb = ({ type, value, couponType }) => {
   );
 };
 
-/* ─── STATUS / TYPE badges — identical to FLAGS column in Products ─── */
+/* ─── Badges ─── */
 const Badge = ({ text, color, icon }) => (
   <span style={{
     display: 'inline-flex', alignItems: 'center', gap: 4,
@@ -73,11 +73,11 @@ const Badge = ({ text, color, icon }) => (
 function CouponModal({ coupon, onClose, onSaved }) {
   const [form, setForm] = useState(coupon ? {
     ...coupon,
-    startDate:  coupon.startDate?.split('T')[0] || '',
+    startDate:  coupon.startDate?.split('T')[0]  || '',
     expiryDate: coupon.expiryDate?.split('T')[0] || '',
   } : { ...EMPTY_FORM });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error,   setError]   = useState('');
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -95,32 +95,35 @@ function CouponModal({ coupon, onClose, onSaved }) {
     } finally { setLoading(false); }
   };
 
+  // Uses CSS variables so it adapts to dark/light mode
   const inp = {
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    borderRadius: 8, color: '#fff',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--border-color)',
+    borderRadius: 8, color: 'var(--text-primary)',
     padding: '0.6rem 0.85rem', width: '100%',
     boxSizing: 'border-box', fontSize: '0.875rem',
     outline: 'none', colorScheme: 'dark',
+    fontFamily: 'Inter, sans-serif',
   };
   const lbl = {
-    fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)',
+    fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-muted)',
     letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6, display: 'block',
   };
   const row = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' };
 
   return (
     <div
+      className="modal-overlay"
       onClick={e => e.target === e.currentTarget && onClose()}
-      style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: '#0d1526', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: '2rem', width: 640, maxWidth: '95vw', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 32px 80px rgba(0,0,0,0.7)' }}>
+    >
+      <div className="modal" style={{ width: 640, maxWidth: '95vw' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem' }}>
-          <h2 style={{ fontSize: '0.75rem', fontWeight: 800, color: '#fff', letterSpacing: '0.14em', textTransform: 'uppercase', margin: 0 }}>
+          <h2 style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.14em', textTransform: 'uppercase', margin: 0, fontFamily: 'Orbitron, sans-serif' }}>
             {coupon ? 'EDIT COUPON' : 'ADD COUPON'}
           </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: 4 }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: 4 }}>✕</button>
         </div>
 
         {error && (
@@ -130,39 +133,47 @@ function CouponModal({ coupon, onClose, onSaved }) {
         )}
 
         <div style={row}>
-          <div><label style={lbl}>Coupon Code *</label>
+          <div>
+            <label style={lbl}>Coupon Code *</label>
             <input style={inp} value={form.code} onChange={e => set('code', e.target.value.toUpperCase())} placeholder="SAVE20" />
           </div>
-          <div><label style={lbl}>Type *</label>
+          <div>
+            <label style={lbl}>Type *</label>
             <select style={{ ...inp, cursor: 'pointer' }} value={form.type} onChange={e => set('type', e.target.value)}>
-              {TYPES.map(t => <option key={t} value={t} style={{ background: '#0d1526', color: '#fff' }}>{t.replace(/_/g, ' ')}</option>)}
+              {TYPES.map(t => <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>)}
             </select>
           </div>
         </div>
 
         <div style={row}>
-          <div><label style={lbl}>Value * {form.type === 'percentage' ? '(%)' : form.type === 'fixed' ? '(LKR)' : ''}</label>
+          <div>
+            <label style={lbl}>Value * {form.type === 'percentage' ? '(%)' : form.type === 'fixed' ? '(LKR)' : ''}</label>
             <input style={inp} type="number" min="0" value={form.value} onChange={e => set('value', e.target.value)} placeholder="0" />
           </div>
-          <div><label style={lbl}>Min Order Value (LKR)</label>
+          <div>
+            <label style={lbl}>Min Order Value (LKR)</label>
             <input style={inp} type="number" min="0" value={form.minOrderValue} onChange={e => set('minOrderValue', e.target.value)} placeholder="0" />
           </div>
         </div>
 
         <div style={row}>
-          <div><label style={lbl}>Max Discount Cap (LKR)</label>
+          <div>
+            <label style={lbl}>Max Discount Cap (LKR)</label>
             <input style={inp} type="number" min="0" value={form.maxDiscount} onChange={e => set('maxDiscount', e.target.value)} placeholder="Unlimited" />
           </div>
-          <div><label style={lbl}>Usage Limit (total)</label>
+          <div>
+            <label style={lbl}>Usage Limit (total)</label>
             <input style={inp} type="number" min="1" value={form.usageLimit} onChange={e => set('usageLimit', e.target.value)} placeholder="Unlimited" />
           </div>
         </div>
 
         <div style={row}>
-          <div><label style={lbl}>Per User Limit</label>
+          <div>
+            <label style={lbl}>Per User Limit</label>
             <input style={inp} type="number" min="1" value={form.perUserLimit} onChange={e => set('perUserLimit', e.target.value)} />
           </div>
-          <div><label style={lbl}>Start Date</label>
+          <div>
+            <label style={lbl}>Start Date</label>
             <input style={inp} type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)} />
           </div>
         </div>
@@ -174,22 +185,22 @@ function CouponModal({ coupon, onClose, onSaved }) {
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', marginBottom: '1.75rem', paddingTop: '0.25rem' }}>
           {[['active','Active'],['firstOrderOnly','First Order Only'],['freeShipping','Free Shipping'],['stackable','Stackable'],['autoApply','Auto Apply'],['membersOnly','Members Only']].map(([key, label]) => (
-            <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)', userSelect: 'none' }}>
+            <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.8rem', color: 'var(--text-secondary)', userSelect: 'none' }}>
               <input type="checkbox" checked={!!form[key]} onChange={e => set(key, e.target.checked)}
-                style={{ accentColor: '#0057ff', width: 15, height: 15, cursor: 'pointer' }} />
+                style={{ accentColor: '#0066FF', width: 15, height: 15, cursor: 'pointer' }} />
               {label}
             </label>
           ))}
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem' }}>
-          <button onClick={onClose}
-            style={{ padding: '0.55rem 1.25rem', borderRadius: 7, background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.45)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            Cancel
-          </button>
-          <button onClick={handleSubmit} disabled={loading}
-            style={{ padding: '0.55rem 1.5rem', borderRadius: 7, background: '#0057ff', border: 'none', color: '#fff', fontWeight: 800, cursor: 'pointer', opacity: loading ? 0.65 : 1, fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+        <div className="ap-product-modal-actions" style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
+          <button onClick={handleSubmit} disabled={loading} className="btn-no-min"
+            style={{ flex: 1, padding: '0.55rem 1.5rem', borderRadius: 7, background: '#0066FF', border: 'none', color: '#fff', fontWeight: 800, cursor: 'pointer', opacity: loading ? 0.65 : 1, fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'Orbitron, sans-serif' }}>
             {loading ? 'Saving…' : coupon ? 'Save Changes' : '+ Add Coupon'}
+          </button>
+          <button onClick={onClose} className="btn-no-min"
+            style={{ padding: '0.55rem 1.25rem', borderRadius: 7, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}>
+            Cancel
           </button>
         </div>
       </div>
@@ -209,46 +220,30 @@ export default function AdminCoupons() {
   const [deletingId, setDeletingId] = useState(null);
   const [page,       setPage]       = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [stats,      setStats]      = useState({ total: 0, active: 0, expired: 0, totalDiscount: 0, ordersWithCoupons: 0 });
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
     try {
       const params = new URLSearchParams({ page, limit: 20 });
       if (search) params.set('search', search);
+      // Only send active param for active/inactive filters
       if (filter === 'active')   params.set('active', 'true');
       if (filter === 'inactive') params.set('active', 'false');
 
-      const [res, analyticsRes] = await Promise.all([
-        api.get(`/admin/coupons?${params}`),
-        api.get('/admin/coupons/analytics').catch(() => ({ data: null })),
-      ]);
+      const res = await api.get(`/admin/coupons?${params}`);
+      let list = res.data.coupons || res.data || [];
 
-      let list = res.data.coupons || res.data;
-
+      // Client-side expired filter (no API param needed)
       if (filter === 'expired') {
         const now = new Date();
         list = list.filter(c => new Date(c.expiryDate) < now);
       }
-      setCoupons(list);
-      setTotalPages(res.data.pages || 1);
 
-      // compute stats from list if analytics endpoint unavailable
-      if (analyticsRes.data) {
-        setStats(analyticsRes.data);
-      } else {
-        const all = res.data.coupons || res.data;
-        const now = new Date();
-        setStats({
-          total:            res.data.total || all.length,
-          active:           all.filter(c => c.active && new Date(c.expiryDate) >= now).length,
-          expired:          all.filter(c => new Date(c.expiryDate) < now).length,
-          totalDiscount:    all.reduce((s, c) => s + (c.totalDiscount || 0), 0),
-          ordersWithCoupons:all.reduce((s, c) => s + (c.usedCount || 0), 0),
-        });
-      }
+      setCoupons(Array.isArray(list) ? list : []);
+      setTotalPages(res.data.pages || 1);
     } catch {
       setError('Failed to load coupons');
+      setCoupons([]);
     } finally { setLoading(false); }
   }, [page, search, filter]);
 
@@ -276,91 +271,64 @@ export default function AdminCoupons() {
 
   const isExpired = (c) => new Date(c.expiryDate) < new Date();
 
-  /* table cell styles — identical to Products */
+  // Table cell styles using CSS variables
   const th = {
     padding: '0.7rem 1rem', textAlign: 'left',
-    fontSize: '0.62rem', color: 'rgba(255,255,255,0.35)',
+    fontSize: '0.62rem', color: 'var(--text-muted)',
     letterSpacing: '0.12em', textTransform: 'uppercase',
-    fontWeight: 700, borderBottom: '1px solid rgba(255,255,255,0.06)',
-    whiteSpace: 'nowrap',
+    fontWeight: 700, borderBottom: '1px solid var(--border-color)',
+    whiteSpace: 'nowrap', fontFamily: 'Orbitron, sans-serif',
   };
   const td = {
     padding: '0.95rem 1rem', fontSize: '0.82rem',
-    color: 'rgba(255,255,255,0.5)',
-    borderBottom: '1px solid rgba(255,255,255,0.05)',
+    color: 'var(--text-secondary)',
+    borderBottom: '1px solid var(--border-color)',
     verticalAlign: 'middle',
   };
 
   const typeColorMap = {
-    percentage:   '#22c55e',
-    fixed:        '#0057ff',
-    free_shipping:'#14b8a6',
-    first_order:  '#a855f7',
-    product:      '#f59e0b',
-    category:     '#f97316',
-    user:         '#06b6d4',
-    referral:     '#ec4899',
-    bogo:         '#ef4444',
+    percentage:    '#22c55e',
+    fixed:         '#0066FF',
+    free_shipping: '#14b8a6',
+    first_order:   '#a855f7',
+    product:       '#f59e0b',
+    category:      '#f97316',
+    user:          '#06b6d4',
+    referral:      '#ec4899',
+    bogo:          '#ef4444',
   };
 
   return (
     <AdminLayout title="COUPON MANAGEMENT">
 
-      {/* ══ STATS CARDS ══ */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem', marginBottom: '1.75rem' }}>
-        {[
-          { label: 'Total Discount',      value: `LKR ${Number(stats.totalDiscount || 0).toLocaleString()}`, color: '#22c55e', bar: 'linear-gradient(90deg,#10B981,#6EE7B7)' },
-          { label: 'Orders w/ Coupons',   value: stats.ordersWithCoupons || 0,                               color: '#0057ff', bar: 'linear-gradient(90deg,#0066FF,#00CCFF)' },
-          { label: 'Total Coupons',        value: stats.total || 0,                                           color: '#a78bfa', bar: 'linear-gradient(90deg,#8B5CF6,#C4B5FD)' },
-          { label: 'Active',              value: stats.active || 0,                                           color: '#34d399', bar: 'linear-gradient(90deg,#10B981,#6EE7B7)' },
-          { label: 'Expired',             value: stats.expired || 0,                                          color: '#f87171', bar: 'linear-gradient(90deg,#EF4444,#FCA5A5)' },
-        ].map(({ label, value, color, bar }) => (
-          <div key={label} style={{
-            background: 'var(--bg-secondary, rgba(255,255,255,0.03))',
-            border: '1px solid var(--border-color, rgba(255,255,255,0.07))',
-            borderRadius: 10, padding: '1.1rem 1.25rem',
-            position: 'relative', overflow: 'hidden',
-          }}>
-            {/* top colour bar */}
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: bar }} />
-            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted, rgba(255,255,255,0.35))', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>
-              {label}
-            </div>
-            <div style={{ fontSize: '1.35rem', fontWeight: 800, color, fontFamily: 'monospace', letterSpacing: '0.02em' }}>
-              {value}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ══ TOP BAR: Search + Add Button — matches Products exactly ══ */}
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
+      {/* ── Search + Filters + Add Button ── */}
+      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
         <input
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1); }}
           placeholder="Search coupons..."
           style={{
-            flex: 1, padding: '0.7rem 1.1rem',
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 8, color: '#fff',
+            flex: 1, minWidth: 180, padding: '0.625rem 1rem',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-color)',
+            borderRadius: 8, color: 'var(--text-primary)',
             fontSize: '0.875rem', outline: 'none',
-            colorScheme: 'dark',
+            fontFamily: 'Inter, sans-serif',
           }}
         />
 
         {/* Filter pills */}
-        <div style={{ display: 'flex', gap: '0.35rem' }}>
+        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
           {['all', 'active', 'inactive', 'expired'].map(f => (
-            <button key={f} onClick={() => { setFilter(f); setPage(1); }}
+            <button key={f} onClick={() => { setFilter(f); setPage(1); }} className="btn-no-min"
               style={{
                 padding: '0.5rem 0.9rem', borderRadius: 6,
-                border: `1px solid ${filter === f ? '#0057ff' : 'rgba(255,255,255,0.1)'}`,
-                background: filter === f ? 'rgba(0,87,255,0.15)' : 'transparent',
-                color: filter === f ? '#4d8fff' : 'rgba(255,255,255,0.4)',
+                border: `1px solid ${filter === f ? '#0066FF' : 'var(--border-color)'}`,
+                background: filter === f ? 'rgba(0,102,255,0.15)' : 'transparent',
+                color: filter === f ? '#60A5FA' : 'var(--text-muted)',
                 cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
                 letterSpacing: '0.07em', textTransform: 'uppercase',
-                transition: 'all 0.15s',
+                transition: 'all 0.15s', fontFamily: 'Orbitron, sans-serif',
               }}>
               {f}
             </button>
@@ -368,14 +336,15 @@ export default function AdminCoupons() {
         </div>
 
         <button
-          onClick={() => setModal('create')}
+          onClick={() => setModal('create')} className="btn-no-min"
           style={{
             padding: '0.62rem 1.35rem', borderRadius: 8,
-            background: '#0057ff', border: 'none',
+            background: '#0066FF', border: 'none',
             color: '#fff', fontWeight: 800, cursor: 'pointer',
             fontSize: '0.8rem', letterSpacing: '0.06em',
             textTransform: 'uppercase', whiteSpace: 'nowrap',
             display: 'flex', alignItems: 'center', gap: 6,
+            fontFamily: 'Orbitron, sans-serif',
           }}>
           + ADD COUPON
         </button>
@@ -387,12 +356,12 @@ export default function AdminCoupons() {
         </div>
       )}
 
-      {/* ══ TABLE — same structure/feel as Products table ══ */}
-      <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, overflow: 'hidden' }}>
+      {/* ── Table ── */}
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 10, overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <tr style={{ background: 'var(--bg-secondary)' }}>
                 <th style={th}>COUPON</th>
                 <th style={th}>SKU / CODE</th>
                 <th style={th}>VALUE</th>
@@ -404,27 +373,28 @@ export default function AdminCoupons() {
             </thead>
             <tbody>
               {loading ? (
-                Array.from({ length: 6 }).map((_, i) => (
+                Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
                     {Array.from({ length: 7 }).map((_, j) => (
                       <td key={j} style={td}>
-                        <div style={{ height: 12, background: 'rgba(255,255,255,0.04)', borderRadius: 4, width: `${40 + Math.random() * 40}%`, animation: 'pulse 1.6s infinite' }} />
+                        <div style={{ height: 12, background: 'var(--border-color)', borderRadius: 4, width: `${40 + (j * 7) % 40}%`, opacity: 0.5 }} />
                       </td>
                     ))}
                   </tr>
                 ))
               ) : coupons.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ ...td, textAlign: 'center', padding: '5rem 1rem', borderBottom: 'none', color: 'rgba(255,255,255,0.18)' }}>
-                    <svg width={40} height={40} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto 12px' }}>
-                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
+                  <td colSpan={7} style={{ ...td, textAlign: 'center', padding: '5rem 1rem', borderBottom: 'none', color: 'var(--text-muted)' }}>
+                    <svg width={40} height={40} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto 12px', opacity: 0.4 }}>
+                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                      <line x1="7" y1="7" x2="7.01" y2="7"/>
                     </svg>
                     No coupons found
                   </td>
                 </tr>
               ) : coupons.map(c => {
                 const expired = isExpired(c);
-                const accentColor = typeColorMap[c.type] || '#0057ff';
+                const accentColor = typeColorMap[c.type] || '#0066FF';
                 const displayValue = c.type === 'percentage' || c.type === 'first_order'
                   ? `${c.value}%`
                   : c.type === 'free_shipping' ? 'FREE SHIP'
@@ -432,19 +402,19 @@ export default function AdminCoupons() {
 
                 return (
                   <tr key={c._id}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.025)'}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,102,255,0.04)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     style={{ transition: 'background 0.12s', cursor: 'default' }}>
 
-                    {/* COUPON column — mirrors PRODUCT: thumbnail + bold name + sub */}
+                    {/* COUPON column */}
                     <td style={td}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <CouponThumb type={c.type} value={c.value} couponType={c.type} />
+                        <CouponThumb value={c.value} couponType={c.type} />
                         <div>
-                          <div style={{ fontWeight: 800, color: '#fff', fontSize: '0.88rem', letterSpacing: '0.06em', fontFamily: 'monospace' }}>
+                          <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '0.88rem', letterSpacing: '0.06em', fontFamily: 'monospace' }}>
                             {c.code}
                           </div>
-                          <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)', marginTop: 2, textTransform: 'capitalize' }}>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2, textTransform: 'capitalize' }}>
                             {c.type.replace(/_/g, ' ')}
                             {c.minOrderValue ? ` · Min LKR ${Number(c.minOrderValue).toLocaleString()}` : ''}
                           </div>
@@ -452,50 +422,51 @@ export default function AdminCoupons() {
                       </div>
                     </td>
 
-                    {/* SKU / CODE column */}
-                    <td style={{ ...td, fontFamily: 'monospace', fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em' }}>
+                    {/* SKU / CODE */}
+                    <td style={{ ...td, fontFamily: 'monospace', fontSize: '0.78rem', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
                       {c.code}
                     </td>
 
-                    {/* VALUE — mirrors PRICE in green/blue bold */}
+                    {/* VALUE */}
                     <td style={{ ...td, color: accentColor, fontWeight: 800, fontSize: '0.92rem', fontFamily: 'monospace', letterSpacing: '0.04em' }}>
                       {displayValue}
                     </td>
 
                     {/* USAGE */}
                     <td style={td}>
-                      <span style={{ color: '#fff', fontWeight: 700 }}>{c.usedCount || 0}</span>
-                      <span style={{ color: 'rgba(255,255,255,0.3)' }}> / {c.usageLimit ?? '∞'}</span>
+                      <span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{c.usedCount || 0}</span>
+                      <span style={{ color: 'var(--text-muted)' }}> / {c.usageLimit ?? '∞'}</span>
                     </td>
 
                     {/* EXPIRY */}
-                    <td style={{ ...td, color: expired ? '#f87171' : 'rgba(255,255,255,0.45)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                    <td style={{ ...td, color: expired ? '#f87171' : 'var(--text-muted)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
                       {formatDate(c.expiryDate)}
                     </td>
 
-                    {/* FLAGS — identical pattern to Products page */}
+                    {/* FLAGS */}
                     <td style={td}>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                         {expired
-                          ? <Badge text="Expired" color="#6b7280" />
+                          ? <Badge text="Expired"  color="#6b7280" />
                           : c.active
-                            ? <Badge text="Active" color="#22c55e" icon="●" />
+                            ? <Badge text="Active"   color="#22c55e" icon="●" />
                             : <Badge text="Inactive" color="#f59e0b" icon="●" />
                         }
-                        {c.autoApply    && <Badge text="Auto" color="#0057ff" />}
-                        {c.freeShipping && <Badge text="Free Ship" color="#14b8a6" />}
-                        {c.firstOrderOnly && <Badge text="1st Order" color="#a855f7" />}
-                        {c.stackable    && <Badge text="Stackable" color="#f97316" />}
-                        {c.membersOnly  && <Badge text="Members Only" color="#06b6d4" />}
+                        {c.autoApply      && <Badge text="Auto"        color="#0066FF" />}
+                        {c.freeShipping   && <Badge text="Free Ship"   color="#14b8a6" />}
+                        {c.firstOrderOnly && <Badge text="1st Order"   color="#a855f7" />}
+                        {c.stackable      && <Badge text="Stackable"   color="#f97316" />}
+                        {c.membersOnly    && <Badge text="Members Only" color="#06b6d4" />}
                       </div>
                     </td>
 
-                    {/* ACTIONS — identical to Products: ✏️ Edit + 🗑️ delete */}
+                    {/* ACTIONS */}
                     <td style={td}>
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <div className="ap-product-actions" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                         <button
                           onClick={() => handleToggle(c)}
                           disabled={togglingId === c._id}
+                          className="btn-no-min"
                           style={{
                             display: 'flex', alignItems: 'center', gap: 4,
                             padding: '5px 11px', borderRadius: 6,
@@ -505,21 +476,23 @@ export default function AdminCoupons() {
                             cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700,
                             letterSpacing: '0.07em', textTransform: 'uppercase',
                             transition: 'all 0.15s', whiteSpace: 'nowrap',
+                            fontFamily: 'Orbitron, sans-serif',
                           }}>
                           {togglingId === c._id ? '…' : c.active ? 'Disable' : 'Enable'}
                         </button>
 
                         <button
                           onClick={() => setModal(c)}
+                          className="btn-no-min"
                           style={{
                             display: 'flex', alignItems: 'center', gap: 4,
                             padding: '5px 11px', borderRadius: 6,
-                            border: '1px solid rgba(255,255,255,0.12)',
-                            background: 'rgba(255,255,255,0.04)',
-                            color: '#fff', cursor: 'pointer',
+                            border: '1px solid var(--border-color)',
+                            background: 'var(--bg-secondary)',
+                            color: 'var(--text-primary)', cursor: 'pointer',
                             fontSize: '0.68rem', fontWeight: 700,
                             letterSpacing: '0.07em', textTransform: 'uppercase',
-                            transition: 'all 0.15s',
+                            transition: 'all 0.15s', fontFamily: 'Orbitron, sans-serif',
                           }}>
                           ✏️ Edit
                         </button>
@@ -527,6 +500,7 @@ export default function AdminCoupons() {
                         <button
                           onClick={() => handleDelete(c._id)}
                           disabled={deletingId === c._id}
+                          className="btn-no-min"
                           style={{
                             display: 'flex', alignItems: 'center', gap: 4,
                             padding: '5px 8px', borderRadius: 6,
@@ -547,32 +521,32 @@ export default function AdminCoupons() {
           </table>
         </div>
 
-        {/* Footer: "N coupons shown" — identical to Products */}
+        {/* Footer */}
         {!loading && (
-          <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>
+          <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
               {coupons.length} coupon{coupons.length !== 1 ? 's' : ''} shown
             </span>
 
             {totalPages > 1 && (
               <div style={{ display: 'flex', gap: '0.35rem' }}>
-                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                  style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, opacity: page === 1 ? 0.35 : 1 }}>←</button>
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn-no-min"
+                  style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, opacity: page === 1 ? 0.35 : 1 }}>←</button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                  <button key={p} onClick={() => setPage(p)}
-                    style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: `1px solid ${p === page ? '#0057ff' : 'rgba(255,255,255,0.1)'}`, background: p === page ? 'rgba(0,87,255,0.15)' : 'transparent', color: p === page ? '#4d8fff' : 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
+                  <button key={p} onClick={() => setPage(p)} className="btn-no-min"
+                    style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: `1px solid ${p === page ? '#0066FF' : 'var(--border-color)'}`, background: p === page ? 'rgba(0,102,255,0.15)' : 'transparent', color: p === page ? '#60A5FA' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
                     {p}
                   </button>
                 ))}
-                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                  style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, opacity: page === totalPages ? 0.35 : 1 }}>→</button>
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="btn-no-min"
+                  style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, opacity: page === totalPages ? 0.35 : 1 }}>→</button>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* ══ MODAL ══ */}
+      {/* ── Modal ── */}
       {modal && (
         <CouponModal
           coupon={modal === 'create' ? null : modal}
