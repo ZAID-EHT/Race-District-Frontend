@@ -29,12 +29,7 @@ select.form-input option {
   background: #1a1a2e !important;
   color: #ffffff !important;
 }
-@media (max-width: 900px) {
-  .orders-status-bar { grid-template-columns: repeat(3, 1fr) !important; }
-}
 @media (max-width: 768px) {
-  .orders-status-bar { grid-template-columns: repeat(3, 1fr) !important; gap: 0.5rem !important; }
-  .orders-status-bar-card { padding: 0.6rem 0.5rem !important; }
   .orders-filter-bar { flex-direction: column !important; align-items: stretch !important; }
   .orders-filter-bar input { width: 100% !important; }
   .orders-status-pills { gap: 0.3rem !important; }
@@ -187,85 +182,75 @@ export default function AdminOrders() {
       )}
 
       {/* Status counts bar */}
-      {(() => {
-        const STATUS_BAR = [
-          { key: 'pending',          label: 'Pending',          color: '#f59e0b' },
-          { key: 'confirmed',        label: 'Confirmed',        color: '#3b82f6' },
-          { key: 'processing',       label: 'Processing',       color: '#8b5cf6' },
-          { key: 'packed',           label: 'Packed',           color: '#06b6d4' },
-          { key: 'shipped',          label: 'Shipped',          color: '#0057ff' },
-          { key: 'out_for_delivery', label: 'Out for Delivery', color: '#f97316' },
-          { key: 'delivered',        label: 'Delivered',        color: '#10b981' },
-          { key: 'cancelled',        label: 'Cancelled',        color: '#ef4444' },
-          { key: 'returned',         label: 'Returned',         color: '#ec4899' },
-        ];
-        const getCount = (key) => {
-          if (!statusCounts) return null;
-          if (key === 'out_for_delivery') return statusCounts.outForDelivery ?? statusCounts.all?.out_for_delivery ?? 0;
-          if (key === 'packed') return statusCounts.all?.packed ?? 0;
-          return statusCounts[key] ?? statusCounts.all?.[key] ?? 0;
-        };
+      <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+      {[
+        { key: 'pending',          label: 'Pending',          color: '#FBBF24', bg: 'rgba(251,191,36,0.10)',  border: 'rgba(251,191,36,0.25)'  },
+        { key: 'confirmed',        label: 'Confirmed',        color: '#60A5FA', bg: 'rgba(96,165,250,0.10)', border: 'rgba(96,165,250,0.25)'  },
+        { key: 'processing',       label: 'Processing',       color: '#00CCFF', bg: 'rgba(0,204,255,0.10)',  border: 'rgba(0,204,255,0.25)'   },
+        { key: 'packed',           label: 'Packed',           color: '#818CF8', bg: 'rgba(129,140,248,0.10)',border: 'rgba(129,140,248,0.25)' },
+        { key: 'shipped',          label: 'Shipped',          color: '#93C5FD', bg: 'rgba(147,197,253,0.10)',border: 'rgba(147,197,253,0.25)' },
+        { key: 'out_for_delivery', label: 'Out for Delivery', color: '#C084FC', bg: 'rgba(192,132,252,0.10)',border: 'rgba(192,132,252,0.25)' },
+        { key: 'delivered',        label: 'Delivered',        color: '#34D399', bg: 'rgba(52,211,153,0.10)', border: 'rgba(52,211,153,0.25)'  },
+        { key: 'cancelled',        label: 'Cancelled',        color: '#F87171', bg: 'rgba(248,113,113,0.10)',border: 'rgba(248,113,113,0.25)' },
+        { key: 'returned',         label: 'Returned',         color: '#FB923C', bg: 'rgba(251,146,60,0.10)', border: 'rgba(251,146,60,0.25)'  },
+      ].map(({ key, label, color, bg, border }) => {
+        let count = null;
+        if (statusCounts) {
+          if (key === 'out_for_delivery') count = statusCounts.outForDelivery ?? statusCounts.all?.out_for_delivery ?? 0;
+          else if (key === 'packed')      count = statusCounts.all?.packed ?? 0;
+          else                             count = statusCounts[key] ?? statusCounts.all?.[key] ?? 0;
+        }
+        const isActive = status === key;
         return (
           <div
-            className="orders-status-bar"
+            key={key}
+            onClick={() => { setStatus(key); setPage(1); }}
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(9, 1fr)',
-              gap: '0.75rem',
-              marginBottom: '1.25rem',
+              display: 'inline-flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: '1 1 0',
+              minWidth: 0,
+              background: isActive ? bg : 'var(--bg-secondary)',
+              border: `1px solid ${isActive ? color : 'var(--border-static)'}`,
+              borderTop: `3px solid ${color}`,
+              borderRadius: '10px',
+              padding: '0.7rem 0.4rem',
+              cursor: 'pointer',
+              textAlign: 'center',
+              transition: 'all 0.18s ease',
+              boxShadow: isActive ? `0 0 14px ${border}` : 'none',
             }}
           >
-            {STATUS_BAR.map(({ key, label, color }) => {
-              const count = getCount(key);
-              const isActive = status === key;
-              return (
-                <div
-                  key={key}
-                  className="orders-status-bar-card"
-                  onClick={() => { setStatus(key); setPage(1); }}
-                  style={{
-                    background: isActive
-                      ? `rgba(${color.replace('#','').match(/.{2}/g).map(h=>parseInt(h,16)).join(',')}, 0.12)`
-                      : 'var(--rd-card)',
-                    border: `1px solid ${isActive ? color : 'var(--rd-border2)'}`,
-                    borderTop: `3px solid ${color}`,
-                    borderRadius: '10px',
-                    padding: '0.75rem 0.5rem',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    transition: 'all 0.18s ease',
-                    boxShadow: isActive ? `0 0 12px rgba(${color.replace('#','').match(/.{2}/g).map(h=>parseInt(h,16)).join(',')}, 0.18)` : 'none',
-                  }}
-                >
-                  <div style={{
-                    fontFamily: 'var(--font-display, Orbitron, sans-serif)',
-                    fontSize: '1.3rem',
-                    fontWeight: 700,
-                    color: count === null ? 'var(--rd-muted)' : color,
-                    lineHeight: 1,
-                    marginBottom: '0.4rem',
-                  }}>
-                    {count === null ? '–' : count}
-                  </div>
-                  <div style={{
-                    fontSize: '0.62rem',
-                    color: 'var(--rd-muted)',
-                    fontWeight: 600,
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                    lineHeight: 1.2,
-                  }}>
-                    {label}
-                  </div>
-                </div>
-              );
-            })}
+            <span style={{
+              fontFamily: "'Orbitron', sans-serif",
+              fontSize: '1.25rem',
+              fontWeight: 700,
+              color: count === null ? 'var(--text-muted)' : color,
+              lineHeight: 1,
+              marginBottom: '0.35rem',
+            }}>
+              {count === null ? '–' : count}
+            </span>
+            <span style={{
+              fontSize: '0.58rem',
+              color: 'var(--text-muted)',
+              fontWeight: 600,
+              letterSpacing: '0.03em',
+              textTransform: 'uppercase',
+              lineHeight: 1.2,
+              whiteSpace: 'nowrap',
+            }}>
+              {label}
+            </span>
           </div>
         );
-      })()}
+      })}
+      </div>
 
       {/* Filters */}
-      <div className="orders-filter-bar" style={{ background: 'var(--rd-card)', border: '1px solid var(--rd-border2)', borderRadius: '12px', padding: '1.25rem', marginBottom: '1.25rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="orders-filter-bar" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.25rem', marginBottom: '1.25rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <input
           className="form-input" style={{ width: '220px', padding: '0.5rem 0.875rem', fontSize: '0.875rem' }}
           placeholder="Search order number..."
@@ -275,10 +260,10 @@ export default function AdminOrders() {
         <div className="orders-status-pills" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', flex: 1 }}>
           {STATUS_OPTS.map(s => (
             <button key={s} onClick={() => { setStatus(s); setPage(1); }} style={{
-              padding: '0.4rem 0.875rem', border: `1px solid ${status === s ? 'var(--rd-blue)' : 'var(--rd-border2)'}`,
+              padding: '0.4rem 0.875rem', border: `1px solid ${status === s ? 'var(--blue-primary)' : 'var(--border-color)'}`,
               borderRadius: '20px', background: status === s ? 'rgba(0,87,255,0.15)' : 'rgba(255,255,255,0.03)',
-              color: status === s ? 'var(--rd-blue-bright)' : 'var(--rd-muted2)',
-              cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '0.78rem', fontWeight: 600,
+              color: status === s ? 'var(--blue-primary)' : 'var(--text-secondary)',
+              cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', fontWeight: 600,
               textTransform: 'capitalize', whiteSpace: 'nowrap'
             }}>
               {s.replace(/_/g, ' ')}
@@ -290,20 +275,20 @@ export default function AdminOrders() {
       {/* Bulk actions */}
       {selected.length > 0 && (
         <div className="orders-bulk-bar" style={{ background: 'rgba(0,87,255,0.08)', border: '1px solid rgba(0,87,255,0.2)', borderRadius: '10px', padding: '0.875rem 1.25rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <span style={{ color: 'var(--rd-blue-bright)', fontWeight: 700, fontSize: '0.875rem' }}>{selected.length} selected</span>
+          <span style={{ color: 'var(--blue-primary)', fontWeight: 700, fontSize: '0.875rem' }}>{selected.length} selected</span>
           <div className="orders-bulk-btns" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             {['confirmed','processing','shipped','delivered','cancelled'].map(s => (
-              <button key={s} onClick={() => handleBulk(s)} className="btn btn-sm" style={{ background: 'rgba(0,87,255,0.15)', color: 'var(--rd-blue-bright)', border: '1px solid rgba(0,87,255,0.25)', textTransform: 'capitalize' }}>
+              <button key={s} onClick={() => handleBulk(s)} className="btn btn-sm" style={{ background: 'rgba(0,87,255,0.15)', color: 'var(--blue-primary)', border: '1px solid rgba(0,87,255,0.25)', textTransform: 'capitalize' }}>
                 → {s.replace(/_/g,' ')}
               </button>
             ))}
           </div>
-          <button onClick={() => setSelected([])} style={{ background: 'none', border: 'none', color: 'var(--rd-muted)', cursor: 'pointer', marginLeft: 'auto', fontSize: '0.875rem' }}>Clear</button>
+          <button onClick={() => setSelected([])} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginLeft: 'auto', fontSize: '0.875rem' }}>Clear</button>
         </div>
       )}
 
       {/* Table */}
-      <div style={{ background: 'var(--rd-card)', border: '1px solid var(--rd-border2)', borderRadius: '16px', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '16px', overflow: 'hidden' }}>
         {loading ? (
           <div style={{ padding: '3rem', textAlign: 'center' }}><div className="spinner" style={{ margin: '0 auto' }} /></div>
         ) : (
@@ -311,43 +296,43 @@ export default function AdminOrders() {
             <table className="orders-rd-table rd-table">
               <thead>
                 <tr>
-                  <th style={{ width: 40 }}><input type="checkbox" checked={selected.length === orders.length && orders.length > 0} onChange={toggleAll} style={{ accentColor: 'var(--rd-blue)' }} /></th>
+                  <th style={{ width: 40 }}><input type="checkbox" checked={selected.length === orders.length && orders.length > 0} onChange={toggleAll} style={{ accentColor: 'var(--blue-primary)' }} /></th>
                   <th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.length === 0 && (
-                  <tr><td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: 'var(--rd-muted)' }}>No orders found</td></tr>
+                  <tr><td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>No orders found</td></tr>
                 )}
                 {orders.map(order => (
                   <React.Fragment key={order._id}>
                     <tr style={{ cursor: 'pointer' }}>
                       <td className="col-check" onClick={e => e.stopPropagation()}>
-                        <input type="checkbox" checked={selected.includes(order._id)} onChange={() => toggleSelect(order._id)} style={{ accentColor: 'var(--rd-blue)' }} />
+                        <input type="checkbox" checked={selected.includes(order._id)} onChange={() => toggleSelect(order._id)} style={{ accentColor: 'var(--blue-primary)' }} />
                       </td>
                       <td onClick={() => setExpandedOrder(expandedOrder === order._id ? null : order._id)}>
-                        <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--rd-blue-bright)', fontSize: '0.85rem' }}>{order.orderNumber}</span>
-                        <span style={{ color: 'var(--rd-muted)', fontSize: '0.7rem', marginLeft: '0.35rem' }}>{expandedOrder === order._id ? '▲' : '▼'}</span>
+                        <span style={{ fontFamily: 'monospace', color: 'var(--blue-primary)', fontSize: '0.85rem' }}>{order.orderNumber}</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem', marginLeft: '0.35rem' }}>{expandedOrder === order._id ? '▲' : '▼'}</span>
                       </td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           {order.customer?.avatar
                             ? <img src={order.customer.avatar} alt="" style={{ width: 28, height: 28, borderRadius: '50%' }} />
-                            : <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--rd-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}>{order.customer?.name?.[0]}</div>
+                            : <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--blue-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}>{order.customer?.name?.[0]}</div>
                           }
                           <div>
                             <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{order.customer?.name || 'Guest'}</div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--rd-muted)' }}>{order.customer?.email}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{order.customer?.email}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="col-hide" style={{ color: 'var(--rd-muted2)', fontSize: '0.8rem' }}>
+                      <td className="col-hide" style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
                         {order.items?.slice(0,2).map((it,i) => <div key={i}>{it.emoji} {it.name} ×{it.quantity}</div>)}
-                        {order.items?.length > 2 && <div style={{ color: 'var(--rd-muted)' }}>+{order.items.length - 2} more</div>}
+                        {order.items?.length > 2 && <div style={{ color: 'var(--text-muted)' }}>+{order.items.length - 2} more</div>}
                       </td>
-                      <td><span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.95rem' }}>{formatLKR(order.total)}</span></td>
+                      <td><span style={{ fontFamily: 'Orbitron, sans-serif', fontWeight: 700, fontSize: '0.95rem' }}>{formatLKR(order.total)}</span></td>
                       <td><span className={`badge ${STATUS_BADGE[order.status] || 'badge-pending'}`}>{order.status?.replace(/_/g,' ')}</span></td>
-                      <td className="col-hide" style={{ color: 'var(--rd-muted)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{new Date(order.createdAt).toLocaleDateString()}</td>
+                      <td className="col-hide" style={{ color: 'var(--text-muted)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{new Date(order.createdAt).toLocaleDateString()}</td>
                       <td className="col-actions">
                         <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                           <button
@@ -365,7 +350,7 @@ export default function AdminOrders() {
                             style={{
                               background: 'rgba(0,87,255,0.1)',
                               border: '1px solid rgba(0,87,255,0.25)',
-                              color: 'var(--rd-blue-bright)',
+                              color: 'var(--blue-primary)',
                               opacity: resendingId === order._id ? 0.5 : 1
                             }}
                           >
@@ -384,8 +369,8 @@ export default function AdminOrders() {
                         <td colSpan={8} style={{ background: 'rgba(0,87,255,0.04)', padding: '1rem 1.5rem' }}>
                           <div className="orders-expanded-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem', fontSize: '0.875rem' }}>
                             <div>
-                              <div style={{ color: 'var(--rd-muted)', fontSize: '0.7rem', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>SHIP TO</div>
-                              <div style={{ color: 'var(--rd-text)' }}>
+                              <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>SHIP TO</div>
+                              <div style={{ color: 'var(--text-primary)' }}>
                                 {order.shippingAddress?.firstName} {order.shippingAddress?.lastName}<br />
                                 {order.shippingAddress?.street}<br />
                                 {order.shippingAddress?.city}, {order.shippingAddress?.state} {order.shippingAddress?.zip}<br />
@@ -394,40 +379,40 @@ export default function AdminOrders() {
                               </div>
                             </div>
                             <div>
-                              <div style={{ color: 'var(--rd-muted)', fontSize: '0.7rem', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>SHIPPING METHOD</div>
+                              <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>SHIPPING METHOD</div>
                               <div>{order.shippingMethod?.name || 'Standard'}</div>
                               {order.tracking?.number && (
-                                <div style={{ color: 'var(--rd-blue-bright)', fontFamily: 'var(--font-mono)', marginTop: '0.25rem' }}>
+                                <div style={{ color: 'var(--blue-primary)', fontFamily: 'monospace', marginTop: '0.25rem' }}>
                                   #{order.tracking.number}
-                                  {order.tracking.carrier && <span style={{ color: 'var(--rd-muted)', marginLeft: '0.5rem', fontFamily: 'var(--font-body)', fontSize: '0.75rem' }}>{order.tracking.carrier}</span>}
+                                  {order.tracking.carrier && <span style={{ color: 'var(--text-muted)', marginLeft: '0.5rem', fontFamily: 'Inter, sans-serif', fontSize: '0.75rem' }}>{order.tracking.carrier}</span>}
                                 </div>
                               )}
                             </div>
                             <div>
-                              <div style={{ color: 'var(--rd-muted)', fontSize: '0.7rem', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>FINANCIALS</div>
+                              <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>FINANCIALS</div>
                               <div>Subtotal: {formatLKR(order.subtotal)}</div>
                               <div>Shipping: {formatLKR(order.shippingCost)}</div>
                               <div>Tax: {formatLKR(order.tax)}</div>
-                              {order.discount > 0 && <div style={{ color: 'var(--rd-green)' }}>Discount: -{formatLKR(order.discount)}</div>}
-                              <div style={{ fontWeight: 700, color: 'var(--rd-green)', marginTop: '0.35rem' }}>Total: {formatLKR(order.total)}</div>
+                              {order.discount > 0 && <div style={{ color: '#34D399' }}>Discount: -{formatLKR(order.discount)}</div>}
+                              <div style={{ fontWeight: 700, color: '#34D399', marginTop: '0.35rem' }}>Total: {formatLKR(order.total)}</div>
                             </div>
                           </div>
                           {order.adminNote && (
-                            <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(255,184,0,0.06)', borderRadius: '8px', fontSize: '0.8rem', color: 'var(--rd-yellow)' }}>
+                            <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(255,184,0,0.06)', borderRadius: '8px', fontSize: '0.8rem', color: '#FBBF24' }}>
                               <i className="fas fa-note-sticky" style={{ marginRight: '0.5rem' }} />{order.adminNote}
                             </div>
                           )}
                           {order.timeline?.length > 0 && (
-                            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--rd-border2)' }}>
-                              <div style={{ color: 'var(--rd-muted)', fontSize: '0.7rem', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>TIMELINE</div>
+                            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+                              <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>TIMELINE</div>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                                 {[...order.timeline].reverse().slice(0, 4).map((ev, i) => (
-                                  <div key={i} style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--rd-muted2)', flexWrap: 'wrap' }}>
-                                    <span style={{ color: i === 0 ? 'var(--rd-blue-bright)' : 'var(--rd-muted)', textTransform: 'capitalize', minWidth: 120 }}>
+                                  <div key={i} style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
+                                    <span style={{ color: i === 0 ? 'var(--blue-primary)' : 'var(--text-muted)', textTransform: 'capitalize', minWidth: 120 }}>
                                       {ev.status?.replace(/_/g, ' ')}
                                     </span>
-                                    <span style={{ color: 'var(--rd-muted)', flex: 1 }}>{ev.message}</span>
-                                    <span style={{ color: 'var(--rd-muted)', whiteSpace: 'nowrap' }}>{new Date(ev.timestamp).toLocaleString()}</span>
+                                    <span style={{ color: 'var(--text-muted)', flex: 1 }}>{ev.message}</span>
+                                    <span style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{new Date(ev.timestamp).toLocaleString()}</span>
                                   </div>
                                 ))}
                               </div>
@@ -445,7 +430,7 @@ export default function AdminOrders() {
 
         {/* Pagination */}
         {pagination.pages > 1 && (
-          <div className="orders-pagination" style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--rd-border2)', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+          <div className="orders-pagination" style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-outline btn-sm">←</button>
             {[...Array(Math.min(pagination.pages, 7))].map((_, i) => (
               <button key={i} onClick={() => setPage(i + 1)} className={`btn btn-sm ${page === i + 1 ? 'btn-primary' : 'btn-outline'}`}>{i + 1}</button>
@@ -461,10 +446,10 @@ export default function AdminOrders() {
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <div>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', letterSpacing: '0.08em' }}>UPDATE ORDER</h3>
-                <div style={{ fontFamily: 'var(--font-mono)', color: 'var(--rd-blue-bright)', fontSize: '0.85rem', marginTop: '0.25rem' }}>{editOrder.orderNumber}</div>
+                <h3 style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '0.9rem', letterSpacing: '0.08em' }}>UPDATE ORDER</h3>
+                <div style={{ fontFamily: 'monospace', color: 'var(--blue-primary)', fontSize: '0.85rem', marginTop: '0.25rem' }}>{editOrder.orderNumber}</div>
               </div>
-              <button onClick={() => setEditOrder(null)} style={{ background: 'none', border: 'none', color: 'var(--rd-muted)', cursor: 'pointer', fontSize: '1.1rem' }}>✕</button>
+              <button onClick={() => setEditOrder(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.1rem' }}>✕</button>
             </div>
             <div className="form-group">
               <label className="form-label">New Status</label>
@@ -482,10 +467,10 @@ export default function AdminOrders() {
               </div>
             )}
             <div className="form-group">
-              <label className="form-label">Admin Note <span style={{ color: 'var(--rd-muted)', fontWeight: 400 }}>(sent in email)</span></label>
+              <label className="form-label">Admin Note <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(sent in email)</span></label>
               <textarea className="form-input" rows={2} value={statusNote} onChange={e => setStatusNote(e.target.value)} placeholder="Internal note..." style={{ resize: 'vertical' }} />
             </div>
-            <div style={{ background: 'rgba(0,87,255,0.06)', border: '1px solid rgba(0,87,255,0.15)', borderRadius: 8, padding: '0.625rem 0.875rem', marginBottom: '1rem', fontSize: '0.8rem', color: 'var(--rd-blue-bright)' }}>
+            <div style={{ background: 'rgba(0,87,255,0.06)', border: '1px solid rgba(0,87,255,0.15)', borderRadius: 8, padding: '0.625rem 0.875rem', marginBottom: '1rem', fontSize: '0.8rem', color: 'var(--blue-primary)' }}>
               <i className="fas fa-envelope" style={{ marginRight: '0.5rem' }} />
               A status update email will be sent to the customer automatically.
             </div>
