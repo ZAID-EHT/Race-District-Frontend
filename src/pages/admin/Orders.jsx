@@ -106,29 +106,32 @@ export default function AdminOrders() {
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
-  const fetchStatusCounts = useCallback(async () => {
-    setCountsLoading(true);
-    try {
-      const statuses = ['pending','confirmed','processing','packed','shipped','out_for_delivery','delivered','cancelled','returned'];
-      const results = await Promise.all(
-        statuses.map(s =>
-          adminAPI.getOrders({ status: s, limit: 1 })
-            .then(r => ({ key: s, count: r.data.pagination?.total ?? r.data.total ?? 0 }))
-            .catch(() => ({ key: s, count: 0 }))
-        )
-      );
-      const map = {};
-      results.forEach(r => { map[r.key] = r.count; });
-      setStatusCounts(map);
-    } catch { /* silent */ }
-    finally { setCountsLoading(false); }
-  }, []);
-
   useEffect(() => {
-    fetchStatusCounts();
-    const interval = setInterval(fetchStatusCounts, 30000);
+    const STATUSES = ['pending','confirmed','processing','packed','shipped','out_for_delivery','delivered','cancelled','returned'];
+    const fetchCounts = async () => {
+      setCountsLoading(true);
+      try {
+        const results = await Promise.all(
+          STATUSES.map(s =>
+            adminAPI.getOrders({ status: s, limit: 1, page: 1 })
+              .then(r => {
+                const p = r.data.pagination || {};
+                const count = p.total ?? p.count ?? p.totalOrders ?? 0;
+                return { key: s, count };
+              })
+              .catch(() => ({ key: s, count: 0 }))
+          )
+        );
+        const map = {};
+        results.forEach(r => { map[r.key] = r.count; });
+        setStatusCounts(map);
+      } catch { /* silent */ }
+      finally { setCountsLoading(false); }
+    };
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 30000);
     return () => clearInterval(interval);
-  }, [fetchStatusCounts]);
+  }, []);
 
   const handleUpdate = async () => {
     if (!editOrder) return;
@@ -194,8 +197,8 @@ export default function AdminOrders() {
       )}
 
       {/* Status Counts Bar */}
-      {(() => {
-        const STATUS_CARDS = [
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', overflowX: 'auto', paddingBottom: 2 }}>
+        {[
           { key: 'pending',          label: 'Pending',          color: '#f59e0b' },
           { key: 'confirmed',        label: 'Confirmed',        color: '#22c55e' },
           { key: 'processing',       label: 'Processing',       color: '#0057ff' },
@@ -205,53 +208,45 @@ export default function AdminOrders() {
           { key: 'delivered',        label: 'Delivered',        color: '#14b8a6' },
           { key: 'cancelled',        label: 'Cancelled',        color: '#ef4444' },
           { key: 'returned',         label: 'Returned',         color: '#ec4899' },
-        ];
-        return (
-          <div style={{
-            display: 'flex', gap: '0.5rem', marginBottom: '1rem',
-            overflowX: 'auto', paddingBottom: '2px',
-          }}>
-            {STATUS_CARDS.map(s => (
-              <div
-                key={s.key}
-                onClick={() => { setStatus(s.key); setPage(1); }}
-                style={{
-                  flex: '1 1 0', minWidth: 82, cursor: 'pointer',
-                  background: 'var(--rd-card)',
-                  border: `1px solid ${status === s.key ? s.color : 'var(--rd-border2)'}`,
-                  borderTop: `2px solid ${s.color}`,
-                  borderRadius: '10px',
-                  padding: '0.55rem 0.65rem',
-                  display: 'flex', flexDirection: 'column', gap: 3,
-                  position: 'relative', overflow: 'hidden',
-                  transition: 'border 0.15s',
-                }}
-              >
-                <div style={{
-                  position: 'absolute', inset: 0,
-                  background: status === s.key ? `${s.color}12` : `${s.color}06`,
-                  pointerEvents: 'none', transition: 'background 0.15s',
-                }} />
-                <span style={{
-                  fontSize: '0.5rem', fontWeight: 700,
-                  color: 'var(--rd-muted)', letterSpacing: '0.1em',
-                  textTransform: 'uppercase', whiteSpace: 'nowrap',
-                  fontFamily: 'var(--font-display)',
-                }}>
-                  {s.label}
-                </span>
-                <span style={{
-                  fontSize: '1.15rem', fontWeight: 800,
-                  color: countsLoading ? 'var(--rd-muted)' : s.color,
-                  fontFamily: 'var(--font-display)', lineHeight: 1,
-                }}>
-                  {countsLoading ? '–' : (statusCounts[s.key] ?? 0)}
-                </span>
-              </div>
-            ))}
+        ].map(s => (
+          <div
+            key={s.key}
+            onClick={() => { setStatus(s.key); setPage(1); }}
+            style={{
+              flex: '1 1 0', minWidth: 82, cursor: 'pointer',
+              background: 'var(--rd-card)',
+              border: `1px solid ${status === s.key ? s.color : 'var(--rd-border2)'}`,
+              borderTop: `2px solid ${s.color}`,
+              borderRadius: 10,
+              padding: '0.55rem 0.65rem',
+              display: 'flex', flexDirection: 'column', gap: 3,
+              position: 'relative', overflow: 'hidden',
+              transition: 'border-color 0.15s',
+            }}
+          >
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: status === s.key ? `${s.color}14` : `${s.color}07`,
+              pointerEvents: 'none',
+            }} />
+            <span style={{
+              fontSize: '0.5rem', fontWeight: 700,
+              color: 'var(--rd-muted)', letterSpacing: '0.1em',
+              textTransform: 'uppercase', whiteSpace: 'nowrap',
+              fontFamily: 'var(--font-display)',
+            }}>
+              {s.label}
+            </span>
+            <span style={{
+              fontSize: '1.15rem', fontWeight: 800,
+              color: countsLoading ? 'var(--rd-muted)' : s.color,
+              fontFamily: 'var(--font-display)', lineHeight: 1,
+            }}>
+              {countsLoading ? '–' : (statusCounts[s.key] ?? 0)}
+            </span>
           </div>
-        );
-      })()}
+        ))}
+      </div>
 
       {/* Filters */}
       <div className="orders-filter-bar" style={{ background: 'var(--rd-card)', border: '1px solid var(--rd-border2)', borderRadius: '12px', padding: '1.25rem', marginBottom: '1.25rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
