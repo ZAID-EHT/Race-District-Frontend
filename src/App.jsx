@@ -3,6 +3,8 @@
 //   - import KokoReturn
 //   - ✅ import AdminCoupons
 //   - Added <Route path="/admin/coupons" element={<AdminCoupons />} />
+//   - ✅ import NewsletterPopup
+//   - Added <NewsletterPopup /> inside AppRoutes
 
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -29,6 +31,8 @@ import ScrollToTop from './components/common/ScrollToTop';
 import KokoReturn from './pages/KokoReturn';
 // ✅ Added: Admin coupon management page
 import AdminCoupons from './pages/admin/Coupons';
+// ✅ Added: Newsletter popup (first-visit / 7-day cooldown)
+import NewsletterPopup from './components/common/NewsletterPopup';
 
 import './styles/globals.css';
 
@@ -136,6 +140,8 @@ function AppRoutes() {
   return (
     <>
       <ScrollToTop />
+      {/* ✅ Popup: shows after 7 s on first visit (or after 7-day gap), logged-out only */}
+      <NewsletterPopup />
       <Routes>
         {/* Store pages */}
         <Route path="/" element={<StoreLayout><Home /></StoreLayout>} />
