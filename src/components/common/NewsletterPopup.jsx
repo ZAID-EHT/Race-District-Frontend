@@ -12,7 +12,7 @@
 //   • Click backdrop → dismiss (same 7-day cooldown)
 //   • Does NOT appear on /admin/* routes
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -21,7 +21,7 @@ const SHOW_DELAY_MS = 7_000;
 const COOLDOWN_MS   = 7 * 24 * 60 * 60 * 1000;
 
 export default function NewsletterPopup() {
-  const { isAuthenticated }              = useAuth();
+  const { isAuthenticated, loading }     = useAuth();
   const navigate                         = useNavigate();
   const { pathname }                     = useLocation();
 
@@ -31,41 +31,47 @@ export default function NewsletterPopup() {
     () => document.body.classList.contains('light-mode')
   );
 
-  /* ── helpers ── */
-  const isAdminRoute = pathname.startsWith('/admin');
+  // Ref so the timer is only ever started ONCE after auth resolves
+  const timerStarted = useRef(false);
 
-  const shouldShow = useCallback(() => {
-    if (isAuthenticated || isAdminRoute) return false;
-    const last = localStorage.getItem(STORAGE_KEY);
-    if (!last) return true;
-    return Date.now() - parseInt(last, 10) > COOLDOWN_MS;
-  }, [isAuthenticated, isAdminRoute]);
-
-  /* ── effects ── */
+  /* ── Effect 1: theme + resize listeners (always active, no auth deps) ── */
   useEffect(() => {
-    // live theme tracking
     const onMutation = () =>
       setIsLight(document.body.classList.contains('light-mode'));
     const mutObs = new MutationObserver(onMutation);
     mutObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
-    // live responsive tracking
     const onResize = () => setIsMobile(window.innerWidth < 640);
     window.addEventListener('resize', onResize);
-
-    let timer;
-    if (shouldShow()) {
-      timer = setTimeout(() => {
-        if (shouldShow()) setVisible(true);
-      }, SHOW_DELAY_MS);
-    }
 
     return () => {
       mutObs.disconnect();
       window.removeEventListener('resize', onResize);
-      if (timer) clearTimeout(timer);
     };
-  }, [shouldShow]);
+  }, []); // runs once only
+
+  /* ── Effect 2: popup timer — starts ONCE, only after auth finishes loading ── */
+  useEffect(() => {
+    // Still loading auth state — wait, don't touch the timer yet
+    if (loading) return;
+
+    // Already started — don't let auth re-renders reset the 7-second clock
+    if (timerStarted.current) return;
+
+    // Logged in or admin page — never show
+    if (isAuthenticated) return;
+    if (pathname.startsWith('/admin')) return;
+
+    // Cooldown check (7-day gap)
+    const last = localStorage.getItem(STORAGE_KEY);
+    if (last && Date.now() - parseInt(last, 10) <= COOLDOWN_MS) return;
+
+    // Start the timer exactly once
+    timerStarted.current = true;
+    const timer = setTimeout(() => setVisible(true), SHOW_DELAY_MS);
+    return () => clearTimeout(timer);
+
+  }, [loading, isAuthenticated, pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── actions ── */
   const dismiss = () => {
