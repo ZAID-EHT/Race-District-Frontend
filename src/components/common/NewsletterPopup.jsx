@@ -144,37 +144,45 @@ export default function NewsletterPopup() {
 
         /* ════════════════════ DESKTOP ════════════════════ */
         .rdp-desktop {
-          /* matches mockup: aspect-ratio 16/7, max width ~700 px */
-          width: min(1300px, 92vw);
-          height: min(580px, 78vh);
+          width: min(1200px, 90vw);
+          height: min(540px, 76vh);
           display:flex; align-items:stretch; position:relative;
         }
-        .rdp-dark.rdp-desktop  { background:#0B1628; }
-        .rdp-light.rdp-desktop { background:#C8DEFF; }
+        .rdp-dark.rdp-desktop  {
+          background:#0B1628;
+          border: 1px solid rgba(30,144,255,0.10);
+          box-shadow: 0 30px 80px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(30,144,255,0.04);
+        }
+        .rdp-light.rdp-desktop {
+          background:#C8DEFF;
+          border: 1px solid rgba(10,46,110,0.08);
+          box-shadow: 0 30px 80px rgba(0,0,0,0.18), inset 0 0 0 1px rgba(255,255,255,0.4);
+        }
 
         /* left content panel */
         .rdp-panel-left {
           position:relative; z-index:2;
           width:42%; flex-shrink:0;
           display:flex; flex-direction:column; justify-content:flex-start;
-          padding: 36px 40px 40px 44px;
+          padding: 40px 36px 40px 44px;
         }
 
         .rdp-headline-d {
           font-family:'Orbitron',sans-serif;
-          font-size: clamp(14px,2vw,22px);
+          font-size: clamp(16px,2.2vw,24px);
           font-weight:900; font-style:italic;
-          line-height:1.15; letter-spacing:1px;
-          text-transform:uppercase; margin-bottom:10px;
+          line-height:1.1; letter-spacing:1.2px;
+          text-transform:uppercase; margin-bottom:12px;
         }
-        .rdp-dark  .rdp-headline-d { color:#1E90FF; }
-        .rdp-light .rdp-headline-d { color:#0A4FCC; }
+        .rdp-dark  .rdp-headline-d { color:#1E90FF; text-shadow: 0 2px 12px rgba(30,144,255,0.25); }
+        .rdp-light .rdp-headline-d { color:#0A4FCC; text-shadow: 0 1px 8px rgba(10,79,204,0.12); }
 
         .rdp-subline-d {
           font-family:'Rajdhani',sans-serif;
-          font-size: clamp(11px,1.2vw,14px);
+          font-size: clamp(12px,1.3vw,15px);
           font-weight:600; font-style:italic;
-          line-height:1.4; margin-bottom:12px;
+          line-height:1.4; margin-bottom:14px;
+          max-width: 92%;
         }
         .rdp-dark  .rdp-subline-d { color:#c8d8f0; }
         .rdp-light .rdp-subline-d { color:#0A2E6E; }
@@ -182,37 +190,86 @@ export default function NewsletterPopup() {
         /* coupon tag */
         .rdp-coupon {
           font-family:'Orbitron',sans-serif;
-          font-size: clamp(7px,0.8vw,9px);
+          font-size: clamp(7.5px,0.85vw,9.5px);
           font-weight:700; letter-spacing:2.5px;
           text-transform:uppercase;
           display:inline-flex; align-items:center; gap:6px;
-          padding:5px 10px; border-radius:2px; width:fit-content;
+          padding:6px 12px; border-radius:4px; width:fit-content;
+          backdrop-filter: blur(4px);
         }
         .rdp-dark  .rdp-coupon { color:#1E90FF; border:1px dashed rgba(30,144,255,0.5); background:rgba(30,144,255,0.08); }
         .rdp-light .rdp-coupon { color:#0A2E6E; border:1px dashed rgba(10,46,110,0.45); background:rgba(10,46,110,0.06); }
 
-        /* sign-up button – desktop (inside panel-left, absolute from panel-left) */
+        /* perks list */
+        .rdp-perks {
+          display: flex; flex-direction: column; gap: 12px;
+          margin-top: 20px; margin-bottom: 20px;
+        }
+        .rdp-perk {
+          display: flex; align-items: center; gap: 10px;
+          font-family: 'Rajdhani', sans-serif;
+          font-size: clamp(11px, 1.15vw, 13.5px);
+          font-weight: 600;
+          line-height: 1.3;
+        }
+        .rdp-dark  .rdp-perk { color: #a8c4e8; }
+        .rdp-light .rdp-perk { color: #0A2E6E; }
+        .rdp-perk-icon {
+          font-size: clamp(12px, 1.25vw, 15px);
+          flex-shrink: 0;
+          filter: drop-shadow(0 0 4px rgba(30,144,255,0.3));
+        }
+        .rdp-light .rdp-perk-icon {
+          filter: drop-shadow(0 0 4px rgba(10,46,110,0.15));
+        }
+
+        /* sign-up button – desktop */
         .rdp-signup-d {
-          position:absolute; bottom:40px; left:44px; z-index:3;
+          position:relative; z-index:3; margin-top: auto; align-self: flex-start;
           font-family:'Orbitron',sans-serif; font-weight:700;
           font-size:11px; letter-spacing:2px; text-transform:uppercase;
-          border:none; padding:13px 28px; color:#fff;
-          cursor:pointer !important;
+          border:none; padding:14px 32px; color:#fff;
+          cursor:pointer !important; white-space: nowrap;
           clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));
-          transition:transform .15s,box-shadow .15s;
+          transition:transform .15s,box-shadow .15s,filter .15s;
         }
         .rdp-dark  .rdp-signup-d { background:#1E90FF; box-shadow:0 0 24px rgba(30,144,255,0.45); }
-        .rdp-dark  .rdp-signup-d:hover { box-shadow:0 0 36px rgba(30,144,255,0.65); transform:translateY(-1px); }
+        .rdp-dark  .rdp-signup-d:hover { box-shadow:0 0 40px rgba(30,144,255,0.75); transform:translateY(-2px); filter: brightness(1.1); }
         .rdp-light .rdp-signup-d { background:#0A2E6E; box-shadow:0 4px 20px rgba(10,46,110,0.35); }
-        .rdp-light .rdp-signup-d:hover { box-shadow:0 6px 28px rgba(10,46,110,0.55); transform:translateY(-1px); }
+        .rdp-light .rdp-signup-d:hover { box-shadow:0 6px 32px rgba(10,46,110,0.6); transform:translateY(-2px); filter: brightness(1.15); }
 
         /* right image panel */
         .rdp-panel-right { flex:1; position:relative; overflow:hidden; z-index:1; }
+        .rdp-panel-right::after {
+          content: '';
+          position: absolute; inset: 0; z-index: 2; pointer-events: none;
+        }
+        .rdp-dark.rdp-desktop .rdp-panel-right::after {
+          background: linear-gradient(to right, #0B1628 0%, transparent 30%);
+        }
+        .rdp-light.rdp-desktop .rdp-panel-right::after {
+          background: linear-gradient(to right, #C8DEFF 0%, transparent 30%);
+        }
         .rdp-panel-right img {
           position:absolute; bottom:0; right:0;
           height:100%; width:100%;
           object-fit:contain; object-position:bottom right;
           pointer-events:none;
+        }
+
+        /* desktop close button tweaks */
+        .rdp-desktop .rdp-close {
+          top: 18px; right: 18px;
+          width: 32px; height: 32px;
+        }
+        .rdp-desktop .rdp-close svg {
+          width: 12px; height: 12px;
+        }
+
+        /* desktop grid fade */
+        .rdp-desktop .rdp-grid {
+          -webkit-mask-image: radial-gradient(ellipse at center, black 50%, transparent 100%);
+          mask-image: radial-gradient(ellipse at center, black 50%, transparent 100%);
         }
 
         /* ════════════════════ MOBILE ════════════════════ */
@@ -343,6 +400,22 @@ export default function NewsletterPopup() {
                 <div className="rdp-coupon">
                   ◆&nbsp;USE CODE&nbsp;NEWUSER
                 </div>
+
+                <div className="rdp-perks">
+                  <div className="rdp-perk">
+                    <span className="rdp-perk-icon">⚡</span>
+                    <span>Exclusive member-only drops</span>
+                  </div>
+                  <div className="rdp-perk">
+                    <span className="rdp-perk-icon">🏎</span>
+                    <span>Free shipping on orders over Rs.9999</span>
+                  </div>
+                  <div className="rdp-perk">
+                    <span className="rdp-perk-icon">◈</span>
+                    <span>Early access to new collections</span>
+                  </div>
+                </div>
+
                 <button className="rdp-signup-d" onClick={goToLogin}>
                   Sign Up Now
                 </button>
