@@ -28,6 +28,8 @@ import AdminCustomers from './pages/admin/Customers';
 import ScrollToTop from './components/common/ScrollToTop';
 // ✅ Added: Admin coupon management page
 import AdminCoupons from './pages/admin/Coupons';
+// ✅ Added: Newsletter popup (first-visit / 7-day cooldown)
+import NewsletterPopup from './components/common/NewsletterPopup';
 
 import './styles/globals.css';
 
@@ -122,6 +124,8 @@ function AppRoutes() {
   return (
     <>
       <ScrollToTop />
+      {/* ✅ Popup: shows after 7 s on first visit (or after 7-day gap), logged-out only */}
+      <NewsletterPopup />
       <Routes>
         {/* Store pages */}
         <Route path="/" element={<StoreLayout><Home /></StoreLayout>} />
