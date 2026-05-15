@@ -145,8 +145,8 @@ export default function NewsletterPopup() {
         /* ════════════════════ DESKTOP ════════════════════ */
         .rdp-desktop {
           /* matches mockup: aspect-ratio 16/7, max width ~700 px */
-          width: min(700px, 90vw);
-          aspect-ratio: 16 / 7;
+          width: min(1100px, 95vw);
+          aspect-ratio: 16 / 10;
           display:flex; align-items:stretch; position:relative;
         }
         .rdp-dark.rdp-desktop  { background:#0B1628; }
@@ -157,12 +157,12 @@ export default function NewsletterPopup() {
           position:relative; z-index:2;
           width:42%; flex-shrink:0;
           display:flex; flex-direction:column; justify-content:flex-start;
-          padding: 36px 40px 40px 44px;
+          padding: 48px 50px 50px 56px;
         }
 
         .rdp-headline-d {
           font-family:'Orbitron',sans-serif;
-          font-size: clamp(14px,2vw,22px);
+          font-size: clamp(18px,2.5vw,30px);
           font-weight:900; font-style:italic;
           line-height:1.15; letter-spacing:1px;
           text-transform:uppercase; margin-bottom:10px;
@@ -172,7 +172,7 @@ export default function NewsletterPopup() {
 
         .rdp-subline-d {
           font-family:'Rajdhani',sans-serif;
-          font-size: clamp(11px,1.2vw,14px);
+          font-size: clamp(13px,1.5vw,18px);
           font-weight:600; font-style:italic;
           line-height:1.4; margin-bottom:12px;
         }
@@ -182,7 +182,7 @@ export default function NewsletterPopup() {
         /* coupon tag */
         .rdp-coupon {
           font-family:'Orbitron',sans-serif;
-          font-size: clamp(7px,0.8vw,9px);
+          font-size: clamp(9px,1vw,12px);
           font-weight:700; letter-spacing:2.5px;
           text-transform:uppercase;
           display:inline-flex; align-items:center; gap:6px;
@@ -193,10 +193,10 @@ export default function NewsletterPopup() {
 
         /* sign-up button – desktop (inside panel-left, absolute from panel-left) */
         .rdp-signup-d {
-          position:absolute; bottom:40px; left:44px; z-index:3;
+          position:absolute; bottom:50px; left:56px; z-index:3;
           font-family:'Orbitron',sans-serif; font-weight:700;
-          font-size:11px; letter-spacing:2px; text-transform:uppercase;
-          border:none; padding:13px 28px; color:#fff;
+          font-size:13px; letter-spacing:2px; text-transform:uppercase;
+          border:none; padding:16px 36px; color:#fff;
           cursor:pointer !important;
           clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));
           transition:transform .15s,box-shadow .15s;
