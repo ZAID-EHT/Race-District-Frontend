@@ -6,6 +6,7 @@
 //   - Added coupon input UI block in DETAILS SCREEN (below delivery, above payment)
 //   - Added coupon discount row in totals (details + recap screens)
 //   - Pass couponCode + discount in orderPayload
+//   - Replaced 🟣 emoji with Koko logo image
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +15,8 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import api from '../services/api';
+
+const KOKO_LOGO = 'https://street82.lk/cdn/shop/files/OPTIMIZE_BACKUP_PRODUCT_logo1.7ff549c0.png?v=1763435824&width=200';
 
 const SHIPPING_OPTIONS = [
   { id: 'island_wide', name: 'Island-Wide Shipping', cost: 400, estimatedDays: 3, description: 'Delivery anywhere in Sri Lanka' },
@@ -392,8 +395,9 @@ export default function Checkout({ cartOpen, setCartOpen }) {
               Payment: <strong className="co-strong">{paymentLabel}</strong>
             </p>
             {paymentMethod === 'koko' && (
-              <p className="co-muted" style={{ fontSize: '0.8rem', marginTop: '0.4rem' }}>
-                🟣 You'll be redirected to Koko's secure checkout to split your payment into 3 easy instalments.
+              <p className="co-muted" style={{ fontSize: '0.8rem', marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <img src={KOKO_LOGO} alt="Koko" style={{ height: '18px', width: 'auto', verticalAlign: 'middle' }} />
+                You'll be redirected to Koko's secure checkout to split your payment into 3 easy instalments.
               </p>
             )}
             <p style={{ color: 'var(--text-primary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
@@ -659,9 +663,12 @@ export default function Checkout({ cartOpen, setCartOpen }) {
                     <div style={{ width: '1.25rem', height: '1.25rem', borderRadius: '50%', border: `2px solid ${paymentMethod === 'koko' ? '#8B5CF6' : '#6B7280'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       {paymentMethod === 'koko' && <div style={{ width: '0.6rem', height: '0.6rem', borderRadius: '50%', background: '#8B5CF6' }} />}
                     </div>
-                    <div>
-                      <div className="co-strong" style={{ fontWeight: 700, fontSize: '0.9rem' }}>🟣 Koko (Buy Now, Pay Later)</div>
-                      <div className="co-muted" style={{ fontSize: '0.75rem' }}>Split into 3 easy payments — you'll be redirected to Koko to complete</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <img src={KOKO_LOGO} alt="Koko" style={{ height: '20px', width: 'auto' }} />
+                      <div>
+                        <div className="co-strong" style={{ fontWeight: 700, fontSize: '0.9rem' }}>Koko (Buy Now, Pay Later)</div>
+                        <div className="co-muted" style={{ fontSize: '0.75rem' }}>Split into 3 easy payments — you'll be redirected to Koko to complete</div>
+                      </div>
                     </div>
                   </div>
 
