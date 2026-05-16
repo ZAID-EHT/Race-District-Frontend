@@ -158,8 +158,16 @@ export default function Checkout({ cartOpen, setCartOpen }) {
         payment: { method: paymentMethod },
         guestEmail: !isAuthenticated ? checkoutForm.email : undefined,
         subtotal,
+        // ── Coupon / discount fields (sent under every name the backend schema might use) ──
         discount,
-        couponCode: couponData ? couponCode.trim().toUpperCase() : null,
+        discountAmount: discount,
+        couponDiscount: discount,
+        couponCode: couponData ? couponCode.trim().toUpperCase() : undefined,
+        coupon:     couponData ? couponCode.trim().toUpperCase() : undefined,
+        discountCode: couponData ? couponCode.trim().toUpperCase() : undefined,
+        couponMeta: couponData
+          ? { code: couponCode.trim().toUpperCase(), discount, freeShipping: !!couponData.freeShipping }
+          : undefined,
         shippingCost: shipping,
         tax: 0,
         total,
